@@ -1,0 +1,49 @@
+<% content_for :page_title, "#{@stage.name} - #{@project.name}" %>
+
+<%= breadcrumb @project, @stage %>
+
+<%= render @stage.lock if @stage.lock %>
+
+<h1>
+  <%= @stage.name %>
+  <%= image_tag project_stage_path(@project, @stage, format: :svg, token: Rails.application.config.samson.badge_token), title: "Deploy badge" %>
+</h1>
+
+<section>
+  <h2>Actions</h2>
+  <div>
+    <%= deploy_link @project, @stage %>
+
+    <%= render "locks/button", lock: @stage.lock %>
+
+    <% if current_user.is_admin? %>
+      <%= link_to "Edit stage", edit_project_stage_path(@project, @stage), class: "btn btn-default" %>
+      <%= link_to project_stage_path(@project, @stage), class: 'btn btn-danger', method: :delete, data: { confirm: "Are you sure?" } do %>
+        <i class="glyphicon glyphicon-remove"></i> Delete
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @stage.dashboard.present? %>
+    <h2>Dashboard</h2>
+    <div><%= sanitize @stage.dashboard, tags: Loofah::HTML5::WhiteList::ACCEPTABLE_ELEMENTS + %w[iframe] %></div>
+  <% end %>
+
+  <h2>Command</h2>
+  <pre class="pre-command"><%= @stage.command %></pre>
+
+  <h2>Recent deploys</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Who</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "/projects/deploy", collection: @deploys %>
+    </tbody>
+  </table>
+  <%= paginate @deploys %>
+</section>

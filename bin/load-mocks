@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+
+from __future__ import absolute_import, unicode_literals
+
+from freight.config import create_app
+app = create_app()
+
+app_context = app.app_context()
+app_context.push()
+
+import loremipsum
+
+from datetime import datetime, timedelta
+from uuid import uuid4
+
+from freight.config import db
+from freight.models import App, LogChunk, Task, TaskStatus, Repository, User
+from freight.testutils.fixtures import Fixtures
+
+fixtures = Fixtures()
+
+
+def main():
+    repo = Repository.query.filter(
+        Repository.url == 'https://github.com/getsentry/freight.git'
+    ).first()
+    if not repo:
+        repo = fixtures.create_repo(
+            url='https://github.com/getsentry/freight.git',
+        )
+
+    app = App.query.filter(
+        App.name == 'freight',
+    ).first()
+    if not app:
+        app = fixtures.create_app(
+            repository=repo,
+            name='freight',
+            provider='dummy',
+        )
+
+    user = User.query.filter(
+        User.name == 'Freight',
+    ).first()
+    if not user:
+        user = fixtures.create_user(
+            name='Freight',
+        )
+
+    Task.query.filter(
+        Task.status.in_([TaskStatus.in_progress, TaskStatus.pending]),
+    ).update({
+        'status': TaskStatus.finished,
+        'date_finished': datetime.utcnow(),
+    }, synchronize_session=False)
+
+    task = fixtures.create_task(
+        app=app,
+        user=user,
+        sha=uuid4().hex,
+        ref='master',
+        environment='production',
+        status=TaskStatus.finished,
+        date_started=datetime.utcnow() - timedelta(minutes=3),
+        date_finished=datetime.utcnow(),
+    )
+
+    offset = 0
+    for line in loremipsum.get_sentences(100):
+        line = line + '\n'
+        db.session.add(LogChunk(
+            task_id=task.id,
+            text=line,
+            size=len(line),
+            offset=offset,
+        ))
+        offset += len(line)
+    db.session.commit()
+
+    task = fixtures.create_task(
+        app=app,
+        user=user,
+        sha=uuid4().hex,
+        ref='master',
+        environment='production',
+        status=TaskStatus.in_progress,
+        date_started=datetime.utcnow(),
+    )
+
+
+
+if __name__ == '__main__':
+    main()

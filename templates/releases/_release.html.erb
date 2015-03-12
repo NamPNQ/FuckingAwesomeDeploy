@@ -1,0 +1,31 @@
+<tr class="release-summary">
+  <td>
+    <%= release_label(@project, release) %>
+  </td>
+  <td>
+    <% release.changeset.authors.each do |author| %>
+      <%= github_user_avatar(author) %>
+    <% end %>
+  </td>
+  <td>
+    <% @stages.select {|stage| stage.current_release?(release) }.each do |stage| %>
+      <span class="label label-success release-stage" title="Currently deployed to <%= stage.name %>">
+        <%= stage.name %>
+      </span>
+    <% end %>
+    <% release.currently_deploying_stages.each do |stage| %>
+      <span class="label label-warning release-stage" title="Being deployed to <%= stage.name %>">
+        <span class="glyphicon glyphicon-cloud-upload"></span> <%= stage.name %>
+      </span>
+    <% end %>
+  </td>
+  <td>
+    <%= render 'deploy_to_button', release: release, stages: @stages %>
+  </td>
+</tr>
+<tr class="release-info collapse">
+  <td></td>
+  <td colspan="3">
+  <%= render "info", release: release, changeset: release.changeset %>
+  </td>
+</tr>
