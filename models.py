@@ -1,12 +1,70 @@
-from __future__ import absolute_import, unicode_literals
-
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.schema import Index, UniqueConstraint
+from sqlalchemy.schema import Index
 
-from freight.config import db
-from freight.db.types.json import JSONEncodedDict
+from app import db
+from db.types.json import JSONEncodedDict
 
+class App(db.Model):
+    __tablename__ = 'app'
+    __table_args__ = (
+        Index('idx_app_repository_id', 'repository_id'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    repository_id = Column(Integer,
+                           ForeignKey('repository.id', ondelete="CASCADE"),
+                           nullable=False)
+    name = Column(String(200), nullable=False, unique=True)
+    provider = Column(String(64))
+    data = Column(JSONEncodedDict)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    @property
+    def checks(self):
+        return self.data.get('checks', [])
+
+    @property
+    def notifiers(self):
+        return self.data.get('notifiers', [])
+
+    @property
+    def provider_config(self):
+        return self.data.get('provider_config', {})
+
+
+LOG_CHUNK_SIZE = 4096
+
+
+class LogChunk(db.Model):
+    __tablename__ = 'logchunk'
+    __table_args__ = (
+        Index('idx_logchunk_task_id', 'task_id'),
+        UniqueConstraint('task_id', 'offset', name='unq_logchunk_source_offset'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), nullable=False)
+    # offset is sum(c.size for c in chunks_before_this)
+    offset = Column(Integer, nullable=False)
+    # size is len(text)
+    size = Column(Integer, nullable=False)
+    text = Column(Text, nullable=False)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class Repository(db.Model):
+    __tablename__ = 'repository'
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String(200), nullable=False, unique=True)
+    vcs = Column(String(64), nullable=False)
+    data = Column(JSONEncodedDict)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def get_path(self):
+        return os.path.join(
+            current_app.config['WORKSPACE_ROOT'], 'freight-repo-{}'.format(self.id)
+        )
 
 class TaskName(object):
     deploy = 'deploy'
@@ -97,3 +155,11 @@ class Task(db.Model):
         if not self.date_finished:
             return
         return float('%.2f' % (self.date_finished - self.date_started).total_seconds())
+
+
+class User(db.Model):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False, unique=True)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)

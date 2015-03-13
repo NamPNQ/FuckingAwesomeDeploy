@@ -11,7 +11,7 @@ from flask import current_app
 from subprocess import PIPE, Popen, STDOUT
 from uuid import uuid1
 
-from freight.exceptions import CommandError
+from exceptions import CommandError
 
 
 class Workspace(object):
@@ -87,5 +87,5 @@ class TemporaryWorkspace(Workspace):
     def __init__(self):
         self.path = os.path.join(
             current_app.config['WORKSPACE_ROOT'],
-            'freight-workspace-{}'.format(uuid1().hex),
+            'fadeploy-workspace-{}'.format(uuid1().hex),
         )

@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 __all__ = ['NotifierManager']
 
-from freight.exceptions import InvalidNotifier
+from exceptions import InvalidNotifier
 
 
 class NotifierManager(object):
