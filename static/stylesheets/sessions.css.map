@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,YAAa;EACX,aAAa,EAAE,GAAG",
+"sources": ["sessions.scss"],
+"names": [],
+"file": "sessions.css"
+}

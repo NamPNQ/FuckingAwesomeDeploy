@@ -1,0 +1,35 @@
+.release .table > tbody > tr > td {
+  border-top: none; }
+.release .table > tbody > tr:last-child > td {
+  border-bottom: none; }
+
+.release-list tbody > tr > td {
+  border-top: none; }
+.release-list tr:last-child > td {
+  border-bottom: none; }
+.release-list td:first-child {
+  width: 130px; }
+.release-list td:last-child {
+  width: 80px; }
+.release-list .collapse {
+  display: none; }
+.release-list .release-summary {
+  cursor: pointer; }
+.release-list .release-info {
+  background-color: #f5f5f5; }
+.release-list .tab-content {
+  padding: 20px;
+  background-color: #fff; }
+
+.release-label {
+  font-size: 14px;
+  font-weight: normal;
+  display: inline-block;
+  margin-bottom: 4px; }
+
+.release-stage {
+  margin-bottom: 3px;
+  display: inline-block;
+  font-size: 80%; }
+
+/*# sourceMappingURL=releases.css.map */

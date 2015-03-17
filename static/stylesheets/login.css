@@ -1,0 +1,45 @@
+.sessions.new {
+  background: #343131; }
+  .sessions.new .navbar,
+  .sessions.new .footer {
+    display: none; }
+
+.login-wrapper {
+  background: #F0F0F0;
+  padding: 10px; }
+  @media (min-width: 768px) {
+    .login-wrapper {
+      width: 350px;
+      margin: 200px auto 0;
+      border-radius: 4px;
+      box-shadow: 0px 0px 8px 2px rgba(0, 0, 0, 0.2); } }
+  .login-wrapper h1 {
+    margin-top: 5px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07); }
+  .login-wrapper .login .action {
+    color: #FFF;
+    text-decoration: none; }
+  .login-wrapper .action {
+    border-radius: 4px;
+    display: block;
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 16px; }
+    .login-wrapper .action:hover {
+      opacity: 0.95; }
+    .login-wrapper .action img {
+      width: 40px;
+      height: 40px;
+      margin: 5px 10px; }
+  .login-wrapper .github {
+    background: #000; }
+  .login-wrapper .zendesk {
+    background: #78A300; }
+  .login-wrapper .google {
+    background: #F00; }
+  .login-wrapper .no-github {
+    padding-top: 10px; }
+  .login-wrapper .more-login-actions {
+    display: none; }
+
+/*# sourceMappingURL=login.css.map */

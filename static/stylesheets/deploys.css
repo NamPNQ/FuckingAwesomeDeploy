@@ -1,0 +1,70 @@
+/*
+Error: Undefined variable: "$brand-danger".
+        on line 102 of ./deploys.scss
+
+97:   top: -10px;
+98: }
+99: 
+100: .deployment-alert {
+101:   padding: 4px 3px 0;
+102:   color: $brand-danger;
+103:   cursor: pointer;
+104: }
+105: 
+106: .deployment-alert-popover {
+107:   max-width: 340px;
+
+Backtrace:
+./deploys.scss:102
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/script/tree/variable.rb:49:in `_perform'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/script/tree/node.rb:50:in `perform'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:384:in `visit_prop'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:36:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:79:in `block in with_base'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:115:in `with_frame'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:79:in `with_base'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:420:in `block (2 levels) in visit_rule'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:420:in `map'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:420:in `block in visit_rule'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:418:in `visit_rule'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:36:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:79:in `block in with_base'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:115:in `with_frame'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/stack.rb:79:in `with_base'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:52:in `block in visit_children'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:52:in `map'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:52:in `visit_children'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:167:in `block in visit_children'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:166:in `visit_children'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:36:in `block in visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:186:in `visit_root'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/base.rb:36:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:157:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/visitors/perform.rb:8:in `visit'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/root_node.rb:36:in `css_tree'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/tree/root_node.rb:29:in `render_with_sourcemap'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/engine.rb:368:in `_render_with_sourcemap'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/engine.rb:285:in `render_with_sourcemap'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/plugin/compiler.rb:490:in `update_stylesheet'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/plugin/compiler.rb:215:in `block in update_stylesheets'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/plugin/compiler.rb:209:in `each'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/plugin/compiler.rb:209:in `update_stylesheets'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/plugin.rb:82:in `update_stylesheets'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/exec/sass_scss.rb:350:in `watch_or_update'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/exec/sass_scss.rb:50:in `process_result'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/exec/base.rb:52:in `parse'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/lib/sass/exec/base.rb:19:in `parse!'
+/var/lib/gems/2.1.0/gems/sass-3.4.9/bin/sass:13:in `<top (required)>'
+/usr/local/bin/sass:23:in `load'
+/usr/local/bin/sass:23:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: Undefined variable: \"$brand-danger\".\A         on line 102 of ./deploys.scss\A \A 97:   top: -10px;\A 98: }\A 99: \A 100: .deployment-alert {\A 101:   padding: 4px 3px 0;\A 102:   color: $brand-danger;\A 103:   cursor: pointer;\A 104: }\A 105: \A 106: .deployment-alert-popover {\A 107:   max-width: 340px;"; }

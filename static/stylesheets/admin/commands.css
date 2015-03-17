@@ -1,0 +1,14 @@
+.pre-scrollable {
+  max-height: 150px; }
+
+.pre-command {
+  background-color: #222222;
+  border-color: #090909;
+  color: white; }
+
+.commands.index .table {
+  table-layout: fixed; }
+  .commands.index .table tr:first-of-type, .commands.index .table th:first-of-type {
+    width: 50%; }
+
+/*# sourceMappingURL=commands.css.map */

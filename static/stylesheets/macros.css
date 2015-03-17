@@ -1,0 +1,8 @@
+#macros {
+  padding: 0; }
+  #macros .stage-bar {
+    padding-left: 5px; }
+  #macros .stage-bar > span:first-child {
+    line-height: 34px; }
+
+/*# sourceMappingURL=macros.css.map */
