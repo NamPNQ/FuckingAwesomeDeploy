@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{ page_title || "FuckingAwesomeDeploy" }}</title>
+    {% assets "css_all" %}
+    <link rel="stylesheet" href="{{ ASSET_URL }}" type="text/css" />
+    {% endassets %}
+    {% assets "js_all" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div class="wrap">
+      {% include "shared/header.html" %}
+      {% endblock %}
+      <div class="container">
+        {% include "shared/alerts.html" %}
+        {% endblock %}
+      </div>
+    </div>
+    {% include "shared/footer.html" %}
+    {% endblock %}
+  </body>
+</html>
