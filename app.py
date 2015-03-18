@@ -2,23 +2,24 @@
 import os
 import logging
 import flask
-from flask import redirect, request, session, url_for, render_template
+from flask import redirect, request, session, url_for, render_template, current_app, flash
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from constants import PROJECT_ROOT
 import assets
 
+# noinspection PyUnresolvedReferences
 import settings
 
 VERSION = (1, 0, 0)
 __version__ = '.'.join(map(str, VERSION))
-print os.path.join(PROJECT_ROOT, 'templates')
+
 app = flask.Flask(
     __name__,
     static_folder=os.path.join(PROJECT_ROOT, 'static'),
     template_folder=os.path.join(PROJECT_ROOT, 'templates'))
-db = SQLAlchemy(session_options={})
+db = SQLAlchemy(session_options={'autocommit': True})
 redis = Redis()
 sentry = Sentry(logging=True, level=logging.WARN)
 
@@ -34,6 +35,18 @@ assets.register_app(app)
 
 def get_version():
     return __version__
+
+
+# Bootstrap helpers
+def alert_class_filter(category):
+    # Map different message types to Bootstrap alert classes
+    categories = {
+        "message": "warning",
+        "error": "danger"
+    }
+    return categories.get(category, category)
+
+app.jinja_env.filters['alert_class'] = alert_class_filter
 
 
 @app.before_request
@@ -91,7 +104,7 @@ def logout():
     return redirect(url_for(complete_url))
 
 
-@app.route('/auth/complete', endpoint='authorized')
+@app.route('/auth/complete/', endpoint='authorized')
 def authorized():
     from utils.auth import get_auth_flow
     from models import User
@@ -105,17 +118,19 @@ def authorized():
 
     if current_app.config['GOOGLE_DOMAIN']:
         if resp.id_token.get('hd') != current_app.config['GOOGLE_DOMAIN']:
-            # TODO(dcramer): this should show some kind of error
+            flash('Only #%s users are allowed to login' % current_app.config['GOOGLE_DOMAIN'], 'error')
             return redirect(url_for(complete_url))
 
     user = User.query.filter(
         User.name == resp.id_token['email'],
     ).first()
-
+    print user
     if user is None:
         user = User(name=resp.id_token['email'])
+        print user
         db.session.add(user)
         db.session.flush()
+        print user.id
 
     session['uid'] = user.id
     session['access_token'] = resp.access_token
@@ -131,7 +146,7 @@ def index():
 
     user = get_current_user()
     if not user:
-        return render_template('sessions/new.html')
+        return render_template('sessions/new.html', body_class='sessions new')
         # return redirect(url_for('login'))
 
     if current_app.config['SENTRY_DSN'] and False:
