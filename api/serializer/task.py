@@ -3,8 +3,8 @@ from __future__ import absolute_import, unicode_literals
 from datetime import datetime, timedelta
 from sqlalchemy.sql import func
 
-from freight.config import db
-from freight.models import App, Task, TaskStatus
+from config import db
+from models import App, Task, TaskStatus
 
 from .base import Serializer
 from .manager import add

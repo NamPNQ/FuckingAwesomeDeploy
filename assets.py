@@ -14,4 +14,5 @@ js_all = Bundle(
 
 def register_app(app):
     assets = Environment(app)
-    assets.register('js_all', js)
+    assets.register('css_all', css_all)
+    assets.register('js_all', js_all)

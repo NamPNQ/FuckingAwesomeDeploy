@@ -1,0 +1,12 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+<div class="login-wrapper fade-in">
+  <h1 class="login-brand">FuckingAwesomeDeploy</h1>
+  <p>Understand what is being deployed.</p>
+  <div class="login">
+      <a href="{{ url_for('login') }}" class="action google">
+          <img src="{{ url_for('static', filename='images/google.png') }}" />
+      </a>
+  </div>
+</div>
+{% endblock %}
