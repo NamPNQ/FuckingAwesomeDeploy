@@ -1,9 +1,12 @@
+import os
+from flask import current_app
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.schema import Index
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String,Text
+from sqlalchemy.schema import Index, UniqueConstraint
 
 from app import db
 from db.types.json import JSONEncodedDict
+
 
 class App(db.Model):
     __tablename__ = 'app'
@@ -52,6 +55,7 @@ class LogChunk(db.Model):
     text = Column(Text, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+
 class Repository(db.Model):
     __tablename__ = 'repository'
 
@@ -63,8 +67,9 @@ class Repository(db.Model):
 
     def get_path(self):
         return os.path.join(
-            current_app.config['WORKSPACE_ROOT'], 'freight-repo-{}'.format(self.id)
+            current_app.config['WORKSPACE_ROOT'], 'fad-repo-{}'.format(self.id)
         )
+
 
 class TaskName(object):
     deploy = 'deploy'

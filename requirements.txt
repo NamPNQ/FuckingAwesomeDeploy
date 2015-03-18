@@ -1,0 +1,9 @@
+flask
+flask-sqlalchemy
+flask-assets
+cssmin
+jsmin
+flask-redis
+raven
+blinker
+oauth2client

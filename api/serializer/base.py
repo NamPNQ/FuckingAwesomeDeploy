@@ -13,6 +13,7 @@ class Serializer(object):
     def serialize(self, item, attrs):
         return {}
 
+    # noinspection PyMethodMayBeStatic
     def format_datetime(self, datetime):
         if not datetime:
             return

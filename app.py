@@ -1,15 +1,19 @@
+# coding=utf-8
+import os
+import logging
 import flask
-from flask import redirect, request, session, url_for
+from flask import redirect, request, session, url_for, render_template
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
-from raven.contrib.celery import register_signal, register_logger_signal
+from constants import PROJECT_ROOT
+import assets
 
 import settings
 
 VERSION = (1, 0, 0)
 __version__ = '.'.join(map(str, VERSION))
-
+print os.path.join(PROJECT_ROOT, 'templates')
 app = flask.Flask(
     __name__,
     static_folder=os.path.join(PROJECT_ROOT, 'static'),
@@ -25,6 +29,7 @@ logging.getLogger().setLevel(getattr(logging, app.config['LOG_LEVEL']))
 sentry.init_app(app)
 redis.init_app(app)
 db.init_app(app)
+assets.register_app(app)
 
 
 def get_version():
@@ -38,9 +43,6 @@ def capture_user(*args, **kwargs):
             'id': session['uid'],
             'email': session['email'],
         })
-
-register_signal(sentry.client)
-register_logger_signal(sentry.client)
 
 
 @app.route('/projects/')
@@ -125,11 +127,12 @@ def authorized():
 @app.route('/', endpoint='index')
 def index():
     import urlparse
-    from utils import get_current_user
+    from utils.auth import get_current_user
 
     user = get_current_user()
     if not user:
-        return redirect(url_for('login'))
+        return render_template('sessions/new.html')
+        # return redirect(url_for('login'))
 
     if current_app.config['SENTRY_DSN'] and False:
         parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])

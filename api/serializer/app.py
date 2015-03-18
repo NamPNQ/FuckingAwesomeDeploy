@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
-from freight.models import App
+from models import App
 
 from .base import Serializer
 from .manager import add

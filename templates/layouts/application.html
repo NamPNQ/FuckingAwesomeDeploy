@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{{ page_title || "FuckingAwesomeDeploy" }}</title>
+    <title>{{ page_title or "FuckingAwesomeDeploy" }}</title>
     {% assets "css_all" %}
     <link rel="stylesheet" href="{{ ASSET_URL }}" type="text/css" />
     {% endassets %}
@@ -13,13 +13,12 @@
   <body>
     <div class="wrap">
       {% include "shared/header.html" %}
-      {% endblock %}
       <div class="container">
         {% include "shared/alerts.html" %}
-        {% endblock %}
       </div>
+        {% block content %}
+        {% endblock %}
     </div>
     {% include "shared/footer.html" %}
-    {% endblock %}
   </body>
 </html>
