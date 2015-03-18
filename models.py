@@ -1,7 +1,7 @@
 import os
 from flask import current_app
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String,Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.schema import Index, UniqueConstraint
 
 from app import db

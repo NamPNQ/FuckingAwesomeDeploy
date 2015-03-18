@@ -16,8 +16,8 @@ def get_auth_flow(redirect_uri=None):
     # doesn't want you to set redirect_uri as part of the request, which causes
     # a lot of runtime issues.
     auth_uri = GOOGLE_AUTH_URI
-    if current_app.config['GOOGLE_DOMAIN']:
-        auth_uri = auth_uri + '?hd=' + current_app.config['GOOGLE_DOMAIN']
+    # if current_app.config['GOOGLE_DOMAIN']:
+    #     auth_uri = auth_uri + '?hd=' + current_app.config['GOOGLE_DOMAIN']
 
     return OAuth2WebServerFlow(
         client_id=current_app.config['GOOGLE_CLIENT_ID'],

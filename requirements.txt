@@ -1,9 +1,11 @@
 flask
 flask-sqlalchemy
 flask-assets
+flask-script
+flask-redis
+flask-migrate
 cssmin
 jsmin
-flask-redis
 raven
 blinker
 oauth2client
