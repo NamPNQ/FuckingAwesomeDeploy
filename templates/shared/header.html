@@ -7,9 +7,10 @@
       {% if current_user.is_authenticated() %}
         <li class="dropdown {{ 'active' if request.path.startswith('/projects') else '' }}">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Projects <b class="caret"></b></a>
-          {% if projects %}
+          {% set all_projects = Project.query.all() %}
+          {% if all_projects %}
           <ul class="dropdown-menu">
-            {% for project in projects %}
+            {% for project in all_projects %}
               <li>
                 <a href="{{ url_for('project', project_id=project.id) }}">
                   <span class="glyphicon">&nbsp;</span> {{ project.name }}

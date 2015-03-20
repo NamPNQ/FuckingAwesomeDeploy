@@ -3,7 +3,7 @@ import os
 import hashlib
 import logging
 import flask
-from flask import redirect, request, session, url_for, render_template, current_app, flash
+from flask import redirect, request, session, url_for, render_template, current_app, flash, abort
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
@@ -73,6 +73,22 @@ app.jinja_env.globals['current_user'] = CurrentUser()
 import models
 from models import UserRole
 
+app.jinja_env.globals['Project'] = models.Project
+
+if app.config['SENTRY_DSN'] and False:
+    parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])
+    dsn = '%s://%s@%s/%s' % (
+        parsed.scheme.rsplit('+', 1)[-1],
+        parsed.username,
+        parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
+        parsed.path,
+    )
+else:
+    dsn = None
+
+app.jinja_env.globals['SENTRY_PUBLIC_DSN'] = dsn
+app.jinja_env.globals['VERSION'] = get_version()
+
 @app.before_request
 def capture_user(*args, **kwargs):
     if 'uid' in session:
@@ -81,37 +97,32 @@ def capture_user(*args, **kwargs):
             'email': session['email'],
         })
 
+@app.before_request
+def before_request():
+    method = request.args.get('_method', '').upper()
+    if method:
+        request.environ['REQUEST_METHOD'] = method
+        ctx = flask._request_ctx_stack.top
+        ctx.url_adapter.default_method = method
+        assert request.method == method
 
-@app.route('/projects/')
-def get_list_projects():
-    pass
 
-@app.route('/projects/new', endpoint='new_project')
-@role_required([UserRole.admin])
-def create_projects():
-    return render_template('/projects/new.html', **{
-        'body_class': 'projects new',
+@app.route('/', endpoint='index')
+def index():
+    import urlparse
+    from utils.auth import get_current_user
+
+    user = get_current_user()
+    if not user:
+        return render_template('sessions/new.html', **{
+            'body_class':'sessions new'
+        })
+
+    import models
+    return render_template('projects/index.html', **{
+        'body_class': 'projects index',
+        'projects': models.Project.query.all()
     })
-
-
-@app.route('/projects/<project_id>/', endpoint='project')
-def get_project(project_id):
-    pass
-
-
-@app.route('/tasks/')
-def get_list_tasks():
-    pass
-
-
-@app.route('/tasks/<task_id>/')
-def get_list_task(task_id):
-    pass
-
-
-@app.route('/tasks/<task_id>/log/')
-def get_task_log(task_id):
-    pass
 
 
 @app.route('/auth/login/', endpoint='login')
@@ -139,7 +150,6 @@ def logout():
 def authorized():
     import requests
     from utils.auth import get_auth_flow
-    from models import User
 
     authorized_url = 'authorized'
     complete_url = 'index'
@@ -154,11 +164,11 @@ def authorized():
             flash('Only #%s users are allowed to login' % current_app.config['GOOGLE_DOMAIN'], 'error')
             return redirect(url_for(complete_url))
 
-    user = User.query.filter(
-        User.email == data['email'],
+    user = models.User.query.filter(
+        models.User.email == data['email'],
     ).first()
     if user is None:
-        user = User(email=data['email'], name=data['name'])
+        user = models.User(email=data['email'], name=data['name'])
         db.session.add(user)
         db.session.flush()
         if user.id == 1:
@@ -174,33 +184,97 @@ def authorized():
     return redirect(url_for(complete_url))
 
 
-@app.route('/', endpoint='index')
-def index():
-    import urlparse
-    from utils.auth import get_current_user
-
-    user = get_current_user()
-    if not user:
-        return render_template('sessions/new.html', body_class='sessions new')
-        # return redirect(url_for('login'))
-
-    if current_app.config['SENTRY_DSN'] and False:
-        parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])
-        dsn = '%s://%s@%s/%s' % (
-            parsed.scheme.rsplit('+', 1)[-1],
-            parsed.username,
-            parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
-            parsed.path,
-        )
-    else:
-        dsn = None
-    import models
+@app.route('/projects/', endpoint='projects')
+def get_list_projects():
     return render_template('projects/index.html', **{
-        'SENTRY_PUBLIC_DSN': dsn,
-        'VERSION': get_version(),
         'body_class': 'projects index',
         'projects': models.Project.query.all()
     })
+
+@app.route('/projects/new', endpoint='new_project', methods=['GET', 'POST'])
+@role_required([UserRole.admin])
+def create_projects():
+    if request.method == 'GET':
+        return render_template('/projects/new.html', **{
+            'body_class': 'projects new',
+        })
+    elif request.method == 'POST':
+        data = request.form
+        name = data.get('name')
+        project = models.Project(
+            name=name,
+            project_data={
+                'stages': [
+                    {
+                        'name': 'Production',
+                        'command': 'Mockup data',
+                        'locked': False,
+                        'last_deploy': {}
+                    },
+                    {
+                        'name': 'Dev1',
+                        'command': 'Mockup data',
+                        'locked': True,
+                        'last_deploy': {}
+                    }
+                ]
+            },
+            repository_data={
+                'url': 'https://github.com/NamPNQ/bower-videogular-youtube',
+                'rsa_key': ''
+            }
+        )
+        db.session.add(project)
+        db.session.flush()
+        return redirect(url_for('project', project_id=project.id))
+
+
+@app.route('/projects/<project_id>/', endpoint='project')
+def get_project(project_id):
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    if request.method == 'DELETE':
+        db.session.delete(project)
+        db.session.flush()
+        return redirect(url_for('projects'))
+    elif request.method == "GET":
+        return render_template('/projects/show.html', **{
+            'body_class': 'projects show',
+            'project': project
+
+        })
+
+
+@app.route('/projects/<project_id>/edit', endpoint='edit_project')
+def get_project(project_id):
+    pass
+
+
+def project_deploys(project_id):
+    pass
+
+def project_webhooks(project_id):
+    pass
+
+@app.route('/projects/<project_id>/stages/<stage>/deploys/new', endpoint='deploy')
+def deploy(project_id, stage):
+    pass
+
+
+@app.route('/tasks/')
+def get_list_tasks():
+    pass
+
+
+@app.route('/tasks/<task_id>/')
+def get_list_task(task_id):
+    pass
+
+
+@app.route('/tasks/<task_id>/log/')
+def get_task_log(task_id):
+    pass
 
 
 @app.route('/deploys/recent', endpoint='recent_deploys')
@@ -226,8 +300,13 @@ def admin_projects():
 @app.route('/admin/users/<user_id>', endpoint='admin_users_edit')
 @role_required([UserRole.admin])
 def admin_users(user_id):
+    if user_id and request.method == "DELETE":
+        user = models.User.query.filter(models.User.id == user_id).first()
+        if user:
+            db.session.delete(user)
+            db.session.flush()
     return render_template('/admin/users/index.html', **{
-        'body_class': 'projects show',
+        'body_class': 'users index',
         'users': models.User.query.all(),
         'roles': models.UserRole_LABELS
     })

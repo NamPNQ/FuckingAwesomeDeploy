@@ -1,0 +1,9 @@
+<tr>
+  <td>{{ project.id }}</td>
+  <td><a href="{{ url_for('project',project_id=project.id) }}">{{ project.name }}</a></td>
+  <td>
+    <a href="{{ url_for('edit_project',project_id=project.id) }}">Edit</a>
+    |
+    <a href="{{ url_for('project',project_id=project.id) }}?_method=delete" data-confirm="Are you sure?">Delete</a>
+  </td>
+</tr>
