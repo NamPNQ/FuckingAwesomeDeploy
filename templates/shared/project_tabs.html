@@ -4,8 +4,7 @@
   </li>
 
   <li class="{{ 'active' if active == 'deploys' }}">
-      <a>Deploys</a>
-{#    <a href="{{ url_for('project_deploys', project_id=project.id) }}">Deploys</a>#}
+    <a href="{{ url_for('project_deploys', project_id=project.id) }}">Deploys</a>
   </li>
   <li class="{{ 'active' if active == 'webhooks' }}">
     <a>Webhooks</a>

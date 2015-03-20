@@ -3,19 +3,19 @@
       <a href="#">{{ project.name }}</a>
     </h2>
     <ul>
-    {% for stage in project.stages %}
+    {% for stage in project.stages_data %}
         <li class="{{ 'locked' if stage.locked else '' }}">
-            <a href="#" class="stage-link">{{ stage.name }}</a>
+            <a href="#" class="stage-link">{{ stage.name | upper }}</a>
             {% if stage.currently_deploying %}<span class="label label-primary">Deploying</span>{% endif %}
             {% if stage.locked %}<i class="fa fa-lock"></i>{% endif %}
             {% if stage.last_deploy %}
             <div class="pull-right">
               {% if stage.last_deploy.is_failed %}
-                <a class="no-hover" href="project_deploy_path(project, stage.last_deploy)">
-                    <i class="'fa fa-exclamation-triangle deployment-alert"></i>
+                <a class="no-hover" href="{{ url_for('project_deploy', project_id=project.id, deploy_id=stage.last_deploy.id) }}">
+                    <i class="fa fa-exclamation-triangle deployment-alert"></i>
                 </a>
               {% else %}
-{#              <a href="{{ project_deploy_path(project, stage.last_deploy) }}" class="status label">{{ stage.last_deploy.short_reference }}</a>#}
+                <a href="{{ url_for('project_deploy', project_id=project.id, deploy_id=stage.last_deploy.id) }}" class="status label">{{ stage.last_deploy.short_reference }}</a>
               {% endif %}
             </div>
             {% endif %}

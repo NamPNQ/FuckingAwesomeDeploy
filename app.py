@@ -3,6 +3,7 @@ import os
 import hashlib
 import logging
 import flask
+import urlparse
 from flask import redirect, request, session, url_for, render_template, current_app, flash, abort
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +11,7 @@ from raven.contrib.flask import Sentry
 
 import assets
 from constants import PROJECT_ROOT
-from utils.auth import CurrentUser, login_required, role_required
+from utils.auth import CurrentUser, login_required, role_required, get_current_user
 
 # noinspection PyUnresolvedReferences
 import settings
@@ -34,6 +35,7 @@ sentry.init_app(app)
 redis.init_app(app)
 db.init_app(app)
 assets.register_app(app)
+
 
 def get_version():
     return __version__
@@ -89,6 +91,8 @@ else:
 app.jinja_env.globals['SENTRY_PUBLIC_DSN'] = dsn
 app.jinja_env.globals['VERSION'] = get_version()
 
+
+# noinspection PyUnusedLocal
 @app.before_request
 def capture_user(*args, **kwargs):
     if 'uid' in session:
@@ -97,11 +101,13 @@ def capture_user(*args, **kwargs):
             'email': session['email'],
         })
 
+
 @app.before_request
 def before_request():
     method = request.args.get('_method', '').upper()
     if method:
         request.environ['REQUEST_METHOD'] = method
+        # noinspection PyProtectedMember
         ctx = flask._request_ctx_stack.top
         ctx.url_adapter.default_method = method
         assert request.method == method
@@ -109,13 +115,10 @@ def before_request():
 
 @app.route('/', endpoint='index')
 def index():
-    import urlparse
-    from utils.auth import get_current_user
-
     user = get_current_user()
     if not user:
         return render_template('sessions/new.html', **{
-            'body_class':'sessions new'
+            'body_class': 'sessions new'
         })
 
     import models
@@ -139,7 +142,6 @@ def login():
 @app.route('/auth/logout/')
 def logout():
     complete_url = 'index'
-
     session.pop('uid', None)
     session.pop('access_token', None)
     session.pop('email', None)
@@ -153,7 +155,6 @@ def authorized():
 
     authorized_url = 'authorized'
     complete_url = 'index'
-
     redirect_uri = url_for(authorized_url, _external=True)
     flow = get_auth_flow(redirect_uri=redirect_uri)
     resp = flow.step2_exchange(request.args['code'])
@@ -172,7 +173,6 @@ def authorized():
         db.session.add(user)
         db.session.flush()
         if user.id == 1:
-            from models import UserRole
             user.role = UserRole.admin
             db.session.add(user)
             db.session.flush()
@@ -185,17 +185,19 @@ def authorized():
 
 
 @app.route('/projects/', endpoint='projects')
+@login_required
 def get_list_projects():
     return render_template('projects/index.html', **{
         'body_class': 'projects index',
         'projects': models.Project.query.all()
     })
 
+
 @app.route('/projects/new', endpoint='new_project', methods=['GET', 'POST'])
 @role_required([UserRole.admin])
 def create_projects():
     if request.method == 'GET':
-        return render_template('/projects/new.html', **{
+        return render_template('projects/new.html', **{
             'body_class': 'projects new',
         })
     elif request.method == 'POST':
@@ -204,20 +206,22 @@ def create_projects():
         project = models.Project(
             name=name,
             project_data={
-                'stages': [
-                    {
-                        'name': 'Production',
+                'stages': {
+                    'production': {
                         'command': 'Mockup data',
                         'locked': False,
-                        'last_deploy': {}
+                        'last_deploy': {
+                            'id': 1,
+                            'is_failed': True,
+                            'short_reference': 'master'
+                        }
                     },
-                    {
-                        'name': 'Dev1',
+                    'dev1': {
                         'command': 'Mockup data',
                         'locked': True,
                         'last_deploy': {}
                     }
-                ]
+                }
             },
             repository_data={
                 'url': 'https://github.com/NamPNQ/bower-videogular-youtube',
@@ -230,16 +234,20 @@ def create_projects():
 
 
 @app.route('/projects/<project_id>/', endpoint='project')
+@login_required
 def get_project(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         abort(404)
     if request.method == 'DELETE':
+        user = get_current_user()
+        if user.role != UserRole.admin:
+            abort(403)
         db.session.delete(project)
         db.session.flush()
         return redirect(url_for('projects'))
     elif request.method == "GET":
-        return render_template('/projects/show.html', **{
+        return render_template('projects/show.html', **{
             'body_class': 'projects show',
             'project': project
 
@@ -247,18 +255,29 @@ def get_project(project_id):
 
 
 @app.route('/projects/<project_id>/edit', endpoint='edit_project')
+@role_required([UserRole.admin])
 def get_project(project_id):
     pass
 
 
+@app.route('/projects/<project_id>/deploys', endpoint='project_deploys')
+@role_required([UserRole.admin, UserRole.developer])
 def project_deploys(project_id):
     pass
 
-def project_webhooks(project_id):
+
+@app.route('/projects/<project_id>/stages/<stage_name>/deploys/new', endpoint='new_project_deploy')
+def create_project_deploy(project_id, stage_name):
     pass
 
-@app.route('/projects/<project_id>/stages/<stage>/deploys/new', endpoint='deploy')
-def deploy(project_id, stage):
+
+@app.route('/projects/<project_id>/deploys/<deploy_id>', endpoint='project_deploy')
+def project_deploy(project_id, deploy_id):
+    pass
+
+
+@app.route('/projects/<project_id>/webhooks', endpoint='project_webhooks')
+def project_webhooks(project_id):
     pass
 
 
@@ -290,7 +309,7 @@ def active_deploys():
 @app.route('/admin/projects', endpoint='admin_projects')
 @role_required([UserRole.admin])
 def admin_projects():
-    return render_template('/admin/projects/show.html', **{
+    return render_template('admin/projects/show.html', **{
         'body_class': 'projects show',
         'projects': models.Project.query.all()
     })
@@ -305,7 +324,7 @@ def admin_users(user_id):
         if user:
             db.session.delete(user)
             db.session.flush()
-    return render_template('/admin/users/index.html', **{
+    return render_template('admin/users/index.html', **{
         'body_class': 'users index',
         'users': models.User.query.all(),
         'roles': models.UserRole_LABELS
