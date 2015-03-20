@@ -10,6 +10,8 @@ css_all = Bundle(
 )
 js_all = Bundle(
     'js/jquery.min.js',
+    'lib/bootstrap/js/bootstrap.min.js',
+    'lib/bootstrap-select/js/bootstrap-select.min.js',
     output='application.js')
 
 

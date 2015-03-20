@@ -1,7 +1,7 @@
 {% extends "layouts/application.html" %}
 {% block content %}
 <div class="login-wrapper fade-in">
-  <h1 class="login-brand">FuckingAwesomeDeploy</h1>
+  <h1 class="login-brand">{{ config.PROJECT_NAME or "FuckingAwesomeDeploy" }}</h1>
   <p>Understand what is being deployed.</p>
   <div class="login">
       <a href="{{ url_for('login') }}" class="action google">

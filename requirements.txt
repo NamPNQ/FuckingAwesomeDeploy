@@ -9,3 +9,4 @@ jsmin
 raven
 blinker
 oauth2client
+requests
