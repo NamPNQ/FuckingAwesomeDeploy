@@ -6,7 +6,7 @@
         {% if stage.locked %}
             <a class="btn btn-primary disabled" disabled>Locked</a>
         {% else %}
-            <a href="{{ url_for('deploy', project_id=project.id, stage=stage.name) }}" class="btn btn-primary">Deploy</a>
+            <a href="{{ url_for('new_project_deploy', project_id=project.id, stage_name=stage.name) }}" class="btn btn-primary">Deploy</a>
         {% endif %}
     </td>
   </tr>

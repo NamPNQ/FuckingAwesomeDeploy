@@ -31,6 +31,14 @@ class Project(db.Model):
     def stages(self):
         return self.project_data.get('stages', [])
 
+    @property
+    def stages_data(self):
+        stages = []
+        data = self.project_data.get('stages', [])
+        for k, v in data.iteritems():
+            stages.append(dict({'name': k}, **v))
+        return stages
+
 
 class TaskName(object):
     deploy = 'deploy'
