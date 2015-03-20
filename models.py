@@ -10,9 +10,10 @@ class Project(db.Model):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(200), nullable=False, unique=True)
+    # description = Column(String(500), nullable=True)
     repository_data = Column(JSONEncodedDict)
     project_data = Column(JSONEncodedDict)
-    created_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_date = Column(DateTime, default=datetime.utcnow)
 
     @property
     def checks(self):
@@ -86,7 +87,7 @@ class Task(db.Model):
     stage = Column(String(64), nullable=False)
     status = Column(Integer, nullable=False)
     data = Column(JSONEncodedDict)
-    created_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_date = Column(DateTime, default=datetime.utcnow)
     started_date = Column(DateTime)
     finished_date = Column(DateTime)
 
@@ -145,11 +146,15 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(200), nullable=False, unique=True)
+    name = Column(String(200), nullable=False)
     email = Column(String(200), nullable=False, unique=True)
-    role = Column(Integer, nullable=False)
-    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+    role = Column(Integer, nullable=False, default=UserRole.viewer)
+    date_created = Column(DateTime, default=datetime.utcnow)
 
     @property
     def role_label(self):
         return UserRole_LABELS.get(int(self.role), 'Unknown')
+
+    @property
+    def is_admin(self):
+        return self.role == UserRole.admin

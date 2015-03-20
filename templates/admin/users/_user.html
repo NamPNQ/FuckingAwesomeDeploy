@@ -1,0 +1,13 @@
+<tr>
+  <td>{{ user.id }}</td>
+  <td>{{ user.name }}</td>
+  <td>{{ user.email }}</td>
+  <td class="role" data-user-id="<%= user.id %>">
+    <div class="relative-wrapper">
+        {% include "admin/users/_roles.html" %}
+    </div>
+  </td>
+  <td>
+    <a href="{{ url_for('admin_users_edit', user_id=user.id) }}?_method=delete" class="btn-sm btn-danger" data-confirm="{{ "Delete %s %s %s ?" % (user.id, user.name, user.email) }}">Delete</a>
+  </td>
+</tr>

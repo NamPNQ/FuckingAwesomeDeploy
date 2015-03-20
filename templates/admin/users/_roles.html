@@ -1,0 +1,5 @@
+{% for key, value in roles.iteritems() %}
+<label class="radio-inline">
+  <input type="radio" name="users[{{ user.id }}][role]" value="{{ key }}" {{ "checked" if user.role == key }}>{{ value }}<br>
+</label>
+{% endfor %}
