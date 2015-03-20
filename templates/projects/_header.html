@@ -1,0 +1,6 @@
+<h1 class="project-title">
+  {{ project.name }}
+</h1>
+{% with active=tab %}
+    {% include "shared/project_tabs.html" %}
+{% endwith %}

@@ -1,0 +1,12 @@
+  <tr>
+    <td>
+      {{ stage.name }}
+    </td>
+    <td align="right">
+        {% if stage.locked %}
+            <a class="btn btn-primary disabled" disabled>Locked</a>
+        {% else %}
+            <a href="{{ url_for('deploy', project_id=project.id, stage=stage.name) }}" class="btn btn-primary">Deploy</a>
+        {% endif %}
+    </td>
+  </tr>

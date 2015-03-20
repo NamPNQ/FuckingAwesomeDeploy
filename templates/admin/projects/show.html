@@ -19,7 +19,9 @@
       </thead>
 
       <tbody>
-        <%= render partial: "project", collection: @projects %>
+        {% for project in projects %}
+            {% include "admin/projects/_project.html" %}
+        {% endfor %}
       </tbody>
     </table>
   {% endif %}

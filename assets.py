@@ -1,9 +1,8 @@
 from flask.ext.assets import Environment, Bundle
 
 css_all = Bundle(
-    'lib/bootstrap/css/bootstrap.css',
-    'lib/bootstrap-select/css/bootstrap-select.css',
-    'lib/font-awesome/css/font-awesome.css',
+    'lib/bootstrap/css/bootstrap.min.css',
+    'lib/bootstrap-select/css/bootstrap-select.min.css',
     'css/admin/*.css',
     'css/*.css',
     output='application.css'

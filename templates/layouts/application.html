@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <title>{{ page_title or config.PROJECT_NAME or "FuckingAwesomeDeploy" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome/css/font-awesome.min.css') }}" type="text/css" />
     {% assets "css_all" %}
     <link rel="stylesheet" href="{{ ASSET_URL }}" type="text/css" />
     {% endassets %}
