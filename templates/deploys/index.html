@@ -1,0 +1,26 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+{% with tab="deploys" %}
+    {% include "projects/_header.html" %}
+{% endwith %}
+
+  <section class="tabs">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Who</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deploy in deploys %}
+            {% include "project/_deploy.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </section>
+
+{% endblock %}

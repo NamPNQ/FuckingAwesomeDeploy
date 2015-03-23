@@ -1,0 +1,8 @@
+  <tr>
+    <td>{{ deploy.time }}</td>
+    <td>
+       <a href="{{ url_for('project_deploy', project_id=project.id, deploy_id=deploy.id) }}">{{ deploy.summary }}</a>
+    </td>
+    <td><span class="label label-{{ deploy.status | lower }}">{{ deploy.status }}</span></td>
+  </tr>
+

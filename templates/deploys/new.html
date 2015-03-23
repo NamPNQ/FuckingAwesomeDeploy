@@ -1,0 +1,32 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+<section>
+  <form class="form-horizontal">
+    <fieldset>
+
+      <div class="form-group">
+        <label class="col-lg-2 control-label">Tag or SHA</label>
+        <div id="scrollable-dropdown-menu" class="col-lg-4">
+          <input type="text" class="form-control" autofocus="true" name="reference" placeholder="e.g. v2.1.43, master, fa0b4671" required>
+        </div>
+      </div>
+
+      <div class="form-group" id="new-deploy-buttons">
+        <div class="col-lg-offset-2 col-lg-10">
+          <input type="submit" class="btn btn-primary" value="Deploy">
+          <a href="{{ url_for('project', project_id=project.id) }}" class="btn btn-default">Cancel</a>
+        </div>
+      </div>
+
+      <div id="deploy-confirmation">
+
+        <div class="tab-content deploy-details active">
+            <div class="tab-pane changeset-placeholder" id="deploy-msg">
+              <p>Loading...</p>
+            </div>
+        </div>
+      </div>
+    </fieldset>
+  </form>
+</section>
+{% endblock %}

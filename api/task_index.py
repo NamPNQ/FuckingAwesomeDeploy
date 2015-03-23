@@ -144,7 +144,7 @@ class TaskIndexApiView(ApiView):
                 provider=app.provider,
                 data={
                     'force': args.force,
-                    'provider_config': app.provider_config,
+                    'provider_config': app.provider_config
                     'notifiers': app.notifiers,
                     'checks': app.checks,
                 },
