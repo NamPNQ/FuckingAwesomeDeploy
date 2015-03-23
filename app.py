@@ -1,4 +1,5 @@
 # coding=utf-8
+import json
 import os
 import hashlib
 import logging
@@ -199,12 +200,17 @@ def create_projects():
     if request.method == 'GET':
         return render_template('projects/new.html', **{
             'body_class': 'projects new',
+            'project': models.Project(name='')
         })
     elif request.method == 'POST':
         data = request.form
         name = data.get('name')
+        description = data.get('description')
+        repository_url = data.get('repository_url')
+        repository_ssh_key = data.get('repository_ssh_key')
         project = models.Project(
             name=name,
+            description=description,
             project_data={
                 'stages': {
                     'production': {
@@ -224,8 +230,8 @@ def create_projects():
                 }
             },
             repository_data={
-                'url': 'https://github.com/NamPNQ/bower-videogular-youtube',
-                'rsa_key': ''
+                'url': repository_url,
+                'ssh_key': repository_ssh_key
             }
         )
         db.session.add(project)
@@ -257,7 +263,37 @@ def get_project(project_id):
 @app.route('/projects/<project_id>/edit', endpoint='edit_project')
 @role_required([UserRole.admin])
 def get_project(project_id):
-    pass
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    return render_template('projects/edit.html', **{
+            'body_class': 'projects edit',
+            'project': project
+        })
+
+
+@app.route('/projects/<project_id>/stages', endpoint='project_stages')
+@login_required
+def project_stages(project_id):
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    return render_template('stages/index.html', **{
+            'body_class': 'stages index',
+            'project': project
+        })
+
+@app.route('/projects/<project_id>/stages/new', endpoint='new_project_stages')
+@role_required([UserRole.admin])
+def create_project_stage(project_id):
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    json_data = json.loads(requests.data)
+    return render_template('stages/index.html', **{
+            'body_class': 'stages index',
+            'project': project
+        })
 
 
 @app.route('/projects/<project_id>/deploys', endpoint='project_deploys')
@@ -298,12 +334,12 @@ def get_task_log(task_id):
 
 @app.route('/deploys/recent', endpoint='recent_deploys')
 def recent_deploys():
-    pass
+    return abort(503)
 
 
 @app.route('/deploys/active', endpoint='active_deploys')
 def active_deploys():
-    pass
+    return abort(503)
 
 
 @app.route('/admin/projects', endpoint='admin_projects')

@@ -9,6 +9,9 @@
   <li class="{{ 'active' if active == 'webhooks' }}">
     <a>Webhooks</a>
   </li>
+  <li class="{{ 'active' if active == 'stages' }}">
+    <a href="{{ url_for('project_stages', project_id=project.id) }}">Stages</a>
+  </li>
   {% if current_user.is_admin %}
   <li class="{{ 'active' if active == 'settings' }}">
     <a href="{{ url_for('edit_project', project_id=project.id) }}">Settings</a>

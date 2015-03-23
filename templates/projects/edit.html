@@ -1,0 +1,10 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+{% with tab="settings" %}
+    {% include "projects/_header.html" %}
+{% endwith %}
+
+<section class="tabs">
+  {% include "projects/_form.html" %}
+</section>
+{% endblock %}
