@@ -1,0 +1,97 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+{% with tab="stages" %}
+    {% include "projects/_header.html" %}
+{% endwith %}
+
+<section class="tabs">
+  <ul id="stages" >
+      {% for stage in project.stages_data %}
+      <li class="stage-bar bar list-unstyled clearfix">
+        ::: {{ project.name }}: <a class="edit-stage-btn">{{ stage.name }}</a>
+        <div class="btn-group pull-right">
+          {% if current_user.is_admin %}
+              <a class="btn btn-default clone-stage-btn">Clone</a>
+          {% endif %}
+        </div>
+      <br>
+      <div class="panel panel-default panel-edit-stage" style="display:none; margin-top:20px">
+          <div class="panel-heading">Update info of stage</div>
+          <div class="panel-body">
+            <form>
+          <fieldset>
+              <fieldset>
+                  <legend>Info</legend>
+                  <div class="form-group">
+                      <label class="col-lg-2 control-label">Name</label>
+                      <div class="col-lg-4">
+                        <input type="text" name="name" class="form-control" value="{{ stage.name }}">
+                      </div>
+                    </div>
+              </fieldset>
+              <fieldset>
+                  <legend>Commands</legend>
+                  <p>Add a command which is specific to your project</p>
+                  <textarea name="command" class="form-control" rows="4">{{ stage.command }}</textarea>
+            </fieldset>
+          </fieldset>
+          <hr>
+
+          <div class="form-group">
+            <div class="col-lg-10">
+              <button type="submit" class="btn btn-default">Save</button>
+            </div>
+          </div>
+        </form>
+          </div>
+      </div>
+      </li>
+      {% endfor %}
+      <li class="stage-bar bar list-unstyled clearfix" style="display:none;">
+        ::: {{ project.name }}: <a class="edit-stage-btn">New stage</a>
+        <div class="btn-group pull-right">
+          {% if current_user.is_admin %}
+              <a class="btn btn-default clone-stage-btn">Clone</a>
+          {% endif %}
+        </div>
+      <br>
+      <div class="panel panel-default panel-edit-stage" style="margin-top:20px">
+          <div class="panel-heading">Update info of stage</div>
+          <div class="panel-body">
+            <form>
+          <fieldset>
+              <fieldset>
+                  <legend>Info</legend>
+                  <div class="form-group">
+                      <label class="col-lg-2 control-label">Name</label>
+                      <div class="col-lg-4">
+                        <input type="text" name="name" class="form-control">
+                      </div>
+                    </div>
+              </fieldset>
+              <fieldset>
+                  <legend>Commands</legend>
+                  <p>Add a command which is specific to your project</p>
+                  <textarea name="command" class="form-control" rows="4"></textarea>
+            </fieldset>
+          </fieldset>
+          <hr>
+
+          <div class="form-group">
+            <div class="col-lg-10">
+              <button class="btn btn-default">Save</button>
+              <button class="btn btn-default">Cancel</button>
+            </div>
+          </div>
+        </form>
+          </div>
+      </div>
+      </li>
+  </ul>
+
+  {% if current_user.is_admin %}
+      <a class="btn btn-default">Add stage</a>
+  {% endif %}
+
+</section>
+{% endblock %}

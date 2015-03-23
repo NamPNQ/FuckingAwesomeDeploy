@@ -1,57 +1,34 @@
-<form action="{{ url_for('new_project') }}" method="POST" class="form-horizontal">
+<form action="{{ url_for('edit_project', project_id=project.id) if project.id else url_for('new_project') }}" method="POST" class="form-horizontal">
   <fieldset>
     <div class="form-group">
       <label class="col-lg-2 control-label">Name</label>
       <div class="col-lg-4">
-        <input type="text" name="name" class="form-control">
+        <input type="text" name="name" class="form-control" value="{{ project.name }}">
       </div>
     </div>
 
     <div class="form-group">
       <label class="col-lg-2 control-label">Description</label>
       <div class="col-lg-4">
-        <textarea name="description" class="form-control"></textarea>
+        <textarea name="description" class="form-control"> {{ project.description }}</textarea>
         <p class="help-block">How would you explain the project to someone new?</p>
       </div>
     </div>
 
-{#    <div class="form-group">#}
-{#      <%= form.label :Contact, class: "col-lg-2 control-label" %>#}
-{#      <div class="col-lg-4">#}
-{#        <%= form.text_field :owner, class: "form-control" %>#}
-{#        <p class="help-block">An email or group to contact with questions.</p>#}
-{#      </div>#}
-{#    </div>#}
-{##}
-{#    <div class="form-group">#}
-{#      <%= form.label :repository_url, class: "col-lg-2 control-label" %>#}
-{#      <div class="col-lg-4">#}
-{#        <%= form.text_field :repository_url, class: "form-control" %>#}
-{#      </div>#}
-{#    </div>#}
-{##}
-{#    <% if project.persisted? %>#}
-{#      <div class="form-group">#}
-{#        <%= form.label :permalink, class: "col-lg-2 control-label" %>#}
-{#        <div class="col-lg-4">#}
-{#          <%= form.text_field :permalink, class: "form-control" %>#}
-{#        </div>#}
-{#      </div>#}
-{#    <% end %>#}
-{##}
-{#    <div class="form-group">#}
-{#      <%= form.label :release_branch, class: "col-lg-2 control-label" %>#}
-{#      <div class="col-lg-4">#}
-{#        <%= form.text_field :release_branch, class: "form-control" %>#}
-{#        <p class="help-block">New commits on this branch will cause a release.</p>#}
-{#      </div>#}
-{#    </div>#}
-{##}
-{#    <% unless project.persisted? %>#}
-{#      <%= form.fields_for :stages do |stage_fields| %>#}
-{#        <%= render 'stages/fields', form: stage_fields %>#}
-{#      <% end %>#}
-{#    <% end %>#}
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Repository url:</label>
+      <div class="col-lg-4">
+        <input type="text" name="repository_url" class="form-control" value="{{ project.repository_data.url }}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Repository ssh key:</label>
+      <div class="col-lg-4">
+        <textarea type="text" name="repository_ssh_key" class="form-control">{{ project.repository_data.ssh_key }}</textarea>
+        <p class="help-block">Private ssh key to clone project</p>
+      </div>
+    </div>
 
     <hr>
 
