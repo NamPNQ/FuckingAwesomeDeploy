@@ -23,8 +23,8 @@ var e=c.find(".active:last a"),f=a.Event("hide.bs.tab",{relatedTarget:b[0]}),g=a
  */
 
 $(function(){
-    $('.edit-stage-btn').click(function(){
-        $this = $(this);
+    $(document).on('click', '.edit-stage-btn', function(){
+        var $this = $(this);
         $this.closest('li').find('.panel-edit-stage').toggle();
-    })
-})
+    });
+});

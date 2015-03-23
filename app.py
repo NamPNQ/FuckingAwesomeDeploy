@@ -255,9 +255,7 @@ def get_project(project_id):
     elif request.method == "GET":
         return render_template('projects/show.html', **{
             'body_class': 'projects show',
-            'project': project
-
-        })
+            'project': project})
 
 
 @app.route('/projects/<project_id>/edit', endpoint='edit_project')
@@ -267,9 +265,8 @@ def get_project(project_id):
     if not project:
         abort(404)
     return render_template('projects/edit.html', **{
-            'body_class': 'projects edit',
-            'project': project
-        })
+        'body_class': 'projects edit',
+        'project': project})
 
 
 @app.route('/projects/<project_id>/stages', endpoint='project_stages')
@@ -279,9 +276,8 @@ def project_stages(project_id):
     if not project:
         abort(404)
     return render_template('stages/index.html', **{
-            'body_class': 'stages index',
-            'project': project
-        })
+        'body_class': 'stages index',
+        'project': project})
 
 @app.route('/projects/<project_id>/stages/new', endpoint='new_project_stages')
 @role_required([UserRole.admin])
@@ -289,22 +285,35 @@ def create_project_stage(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         abort(404)
-    json_data = json.loads(requests.data)
+    json_data = json.loads(request.data)
     return render_template('stages/index.html', **{
-            'body_class': 'stages index',
-            'project': project
-        })
+        'body_class': 'stages index',
+        'project': project})
 
 
 @app.route('/projects/<project_id>/deploys', endpoint='project_deploys')
 @role_required([UserRole.admin, UserRole.developer])
 def project_deploys(project_id):
-    pass
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    return render_template('deploys/index.html', **{
+        'body_class': 'deploys index',
+        'project': project})
 
 
 @app.route('/projects/<project_id>/stages/<stage_name>/deploys/new', endpoint='new_project_deploy')
 def create_project_deploy(project_id, stage_name):
-    pass
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        abort(404)
+    if request.method == 'GET':
+        return render_template('deploys/new.html', **{
+            'body_class': 'deploys new',
+            'project': project})
+    elif request.method == 'POST':
+        reference = request.form.reference
+        return redirect(url_for('project_deploy', project_id=project_id, deploy_id=1))
 
 
 @app.route('/projects/<project_id>/deploys/<deploy_id>', endpoint='project_deploy')
