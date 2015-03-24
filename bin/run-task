@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import, unicode_literals
-
 import logging
 import os
 import sys
@@ -9,11 +7,17 @@ import sys
 from datetime import datetime
 from flask import current_app
 
-from freight import providers, vcs
-from freight.config import create_app, db, redis
-from freight.models import App, LogChunk, Repository, Task, TaskStatus
-from freight.utils.redis import lock
-from freight.utils.workspace import TemporaryWorkspace, Workspace
+# from freight import providers, vcs
+# from freight.config import create_app, db, redis
+# from freight.models import App, LogChunk, Repository, Task, TaskStatus
+# from freight.utils.redis import lock
+# from freight.utils.workspace import TemporaryWorkspace, Workspace
+import providers
+import vcs
+from app import db, redis
+from models import Project, Task, TaskStatus
+from utils.redis import lock
+from utils.workspace import Workspace, TemporaryWorkspace
 
 
 def main(task_id):
@@ -21,28 +25,27 @@ def main(task_id):
     if not task:
         raise ValueError('Task(id=%s) not found' % task_id)
 
-    app = App.query.filter(App.id == task.app_id).first()
-    repo = Repository.query.filter(Repository.id == app.repository_id).first()
+    project = Project.query.filter(Project.id == task.project_id).first()
+    # repo = Repository.query.filter(Repository.id == app.repository_id).first()
 
     task.date_started = datetime.utcnow()
     task.status = TaskStatus.in_progress
     db.session.add(task)
-    db.session.commit()
+    db.session.flush()
 
-    provider = providers.get(task.provider)
+    provider = providers.get('shell')
 
     repo_home = Workspace(
-        path=repo.get_path(),
+        path=project.get_path(),
     )
 
-
     vcs_backend = vcs.get(
-        repo.vcs,
-        url=repo.url,
+        'git',
+        url=project.repository_data['url'],
         workspace=repo_home,
     )
 
-    with lock(redis, 'repo:update:{}'.format(repo.id)):
+    with lock(redis, 'repo:update:{}'.format(project.id)):
         vcs_backend.clone_or_update()
 
     workspace = TemporaryWorkspace()
@@ -51,6 +54,7 @@ def main(task_id):
         vcs_backend.checkout(task.sha, workspace)
 
         try:
+            setattr(task, 'command', project.stages[task.stage]['command'])
             provider.execute(workspace, task)
         except Exception as exc:
             current_app.logger.exception(unicode(exc))
@@ -59,7 +63,7 @@ def main(task_id):
             task.status = TaskStatus.finished
         task.date_finished = datetime.utcnow()
         db.session.add(task)
-        db.session.commit()
+        db.session.flush()
     finally:
         workspace.remove()
 
@@ -70,6 +74,6 @@ if __name__ == '__main__':
     logger.addHandler(logging.StreamHandler())
     logger.setLevel(logging.INFO)
 
-    app = create_app()
+    from app import app
     with app.app_context():
         main(sys.argv[1])

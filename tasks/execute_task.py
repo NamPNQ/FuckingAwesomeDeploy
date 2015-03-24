@@ -1,7 +1,7 @@
-from __future__ import absolute_import, unicode_literals
-
+import os
 import logging
 import sys
+import json
 
 from datetime import datetime
 from flask import current_app
@@ -9,61 +9,35 @@ from subprocess import PIPE, Popen, STDOUT
 from threading import Thread
 from time import sleep, time
 
-from freight import notifiers
-from freight.notifiers import NotifierEvent
-from freight.config import celery, db
-from freight.constants import PROJECT_ROOT
-from freight.models import LogChunk, Task, TaskStatus
+from app import app, db
+from models import Task, TaskStatus
+from flask.ext.sse import send_event
+from constants import PROJECT_ROOT
 
 
-@celery.task(name='freight.execute_task', max_retries=None)
 def execute_task(task_id):
-    task = Task.query.get(task_id)
-    if not task:
-        logging.warning('ExecuteTask fired with missing Task(id=%s)', task_id)
-        return
+    with app.app_context():
+        task = Task.query.get(task_id)
+        if not task:
+            logging.warning('ExecuteTask fired with missing Task(id=%s)', task_id)
+            return
 
-    send_task_notifications(task, NotifierEvent.TASK_STARTED)
+        taskrunner = TaskRunner(
+            task=task
+        )
+        taskrunner.start()
+        taskrunner.wait()
 
-    provider_config = task.provider_config
+        # reload the task from the database due to subprocess changes
+        db.session.expire(task)
+        db.session.refresh(task)
 
-    # wipe the log incase this is a retry
-    LogChunk.query.filter(
-        LogChunk.task_id == task.id,
-    ).delete()
-
-    taskrunner = TaskRunner(
-        task=task,
-        timeout=provider_config.get('timeout', current_app.config['DEFAULT_TIMEOUT']),
-    )
-    taskrunner.start()
-    taskrunner.wait()
-
-    # reload the task from the database due to subprocess changes
-    db.session.expire(task)
-    db.session.refresh(task)
-
-    if task.status in (TaskStatus.pending, TaskStatus.in_progress):
-        logging.error('Task(id=%s) did not finish cleanly', task.id)
-        task.status = TaskStatus.failed
-        task.date_finished = datetime.utcnow()
-        db.session.add(task)
-        db.session.commit()
-
-    send_task_notifications(task, NotifierEvent.TASK_FINISHED)
-
-
-def send_task_notifications(task, event):
-    for data in task.notifiers:
-        notifier = notifiers.get(data['type'])
-        config = data.get('config', {})
-        if not notifier.should_send(task, config, event):
-            continue
-
-        try:
-            notifier.send(task, config, event)
-        except Exception as exc:
-            logging.exception('%s notifier failed to send Task(id=%s)', data['type'], task.id)
+        if task.status in (TaskStatus.pending, TaskStatus.in_progress):
+            logging.error('Task(id=%s) did not finish cleanly', task.id)
+            task.status = TaskStatus.failed
+            task.date_finished = datetime.utcnow()
+            db.session.add(task)
+            db.session.flush()
 
 
 class LogReporter(Thread):
@@ -82,15 +56,18 @@ class LogReporter(Thread):
         sys.stdout.write(text)
 
         text_len = len(text)
-        db.session.add(LogChunk(
-            task_id=self.task_id,
-            text=text,
-            offset=self.cur_offset,
-            size=text_len,
-        ))
 
-        # we commit immediately to ensure the API can stream logs
-        db.session.commit()
+        # db.session.add(LogChunk(
+        #     task_id=self.task_id,
+        #     text=text,
+        #     offset=self.cur_offset,
+        #     size=text_len,
+        # ))
+        send_event('log', json.dumps({'text': text}), 'log_task_' + str(self.task_id))
+
+        # we flush immediately to ensure the API can stream logs
+        with app.app_context():
+            db.session.flush()
         self.cur_offset += text_len
 
     def terminate(self):
@@ -143,12 +120,16 @@ class TaskRunner(object):
         assert not self.active, 'TaskRunner already started'
         self.active = True
         self._started = time()
+        _env = os.environ.copy()
+        _env['PYTHONPATH'] = PROJECT_ROOT
         self._process = Popen(
             args=['bin/run-task', str(self.task.id)],
             cwd=PROJECT_ROOT,
             stdout=PIPE,
-            stderr=STDOUT
+            stderr=STDOUT,
+            env=_env
         )
+        # noinspection PyAttributeOutsideInit
         self._logreporter = LogReporter(
             app_context=current_app.app_context(),
             task_id=self.task.id,
@@ -168,8 +149,9 @@ class TaskRunner(object):
         # so it can still manage the failure state
         self.task.status = TaskStatus.failed
         self.task.date_finished = datetime.utcnow()
-        db.session.add(self.task)
-        db.session.commit()
+        with app.app_context():
+            db.session.add(self.task)
+            db.session.flush()
 
     def _cancel(self):
         logging.error('Task(id=%s) was cancelled', self.task.id)
@@ -182,8 +164,9 @@ class TaskRunner(object):
         # TODO(dcramer): ideally we could just send the signal to the subprocess
         # so it can still manage the failure state
         self.task.date_finished = datetime.utcnow()
-        db.session.add(self.task)
-        db.session.commit()
+        with app.app_context():
+            db.session.add(self.task)
+            db.session.flush()
 
     def _is_cancelled(self):
         cur_status = db.session.query(

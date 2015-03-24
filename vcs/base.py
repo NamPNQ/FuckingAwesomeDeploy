@@ -1,10 +1,8 @@
-from __future__ import absolute_import, unicode_literals
-
 import os
 import os.path
 
-from freight.constants import PROJECT_ROOT
-from freight.exceptions import CommandError
+from constants import PROJECT_ROOT
+from errors import CommandError
 
 
 class UnknownRevision(CommandError):

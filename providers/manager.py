@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 __all__ = ['ProviderManager']
 
-from freight.exceptions import InvalidProvider
+from errors import InvalidProvider
 
 
 class ProviderManager(object):

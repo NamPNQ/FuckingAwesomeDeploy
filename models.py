@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 
@@ -10,7 +11,7 @@ class Project(db.Model):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(200), nullable=False, unique=True)
-    # description = Column(String(500), nullable=True)
+    description = Column(String(500), nullable=True)
     repository_data = Column(JSONEncodedDict)
     project_data = Column(JSONEncodedDict)
     created_date = Column(DateTime, default=datetime.utcnow)
@@ -38,6 +39,12 @@ class Project(db.Model):
         for k, v in data.iteritems():
             stages.append(dict({'name': k}, **v))
         return stages
+
+    def get_path(self):
+        from flask import current_app
+        return os.path.join(
+            current_app.config['WORKSPACE_ROOT'], 'fab-repo-{}'.format(self.id)
+        )
 
 
 class TaskName(object):

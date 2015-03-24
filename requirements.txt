@@ -10,3 +10,5 @@ raven
 blinker
 oauth2client
 requests
+git+https://github.com/NamPNQ/flask-sse
+rq

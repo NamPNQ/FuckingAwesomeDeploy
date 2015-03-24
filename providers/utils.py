@@ -1,8 +1,6 @@
-from __future__ import absolute_import
-
 from itertools import chain
 
-from freight.exceptions import ApiError
+from errors import ApiError
 
 from . import manager
 

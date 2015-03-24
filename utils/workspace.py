@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import logging
 import os
 import shlex
@@ -11,7 +9,7 @@ from flask import current_app
 from subprocess import PIPE, Popen, STDOUT
 from uuid import uuid1
 
-from exceptions import CommandError
+from errors import CommandError
 
 
 class Workspace(object):

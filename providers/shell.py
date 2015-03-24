@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 __all__ = ['ShellProvider']
 
 from .base import Provider
@@ -12,10 +10,9 @@ class ShellProvider(Provider):
         }
 
     def get_command(self, task, ssh_key):
-        return task.provider_config['command'].format(
-            environment=task.environment,
+        return task.command.format(
+            stage=task.stage,
             sha=task.sha,
-            ref=task.ref,
             task=task.name,
             ssh_key=ssh_key,
         )
