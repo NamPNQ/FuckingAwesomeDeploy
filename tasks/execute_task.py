@@ -50,6 +50,7 @@ class LogReporter(Thread):
         self.active = True
         Thread.__init__(self)
         self.daemon = True
+        self.output = ''
 
     def save_chunk(self, text):
         # we also want to pipe this to stdout
@@ -103,6 +104,7 @@ class LogReporter(Thread):
 
         if result:
             self.save_chunk(result)
+            self.output += result
 
 
 class TaskRunner(object):
