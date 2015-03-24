@@ -1,6 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
-
 class ApiError(Exception):
     def __init__(self, message, name=None, status_code=400):
         self.message = message

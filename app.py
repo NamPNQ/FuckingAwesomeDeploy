@@ -5,9 +5,10 @@ import hashlib
 import logging
 import flask
 import urlparse
-from flask import redirect, request, session, url_for, render_template, current_app, flash, abort
+from flask import redirect, request, session, url_for, render_template, current_app, flash, abort, jsonify
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
+from flask.ext.sse import sse
 from raven.contrib.flask import Sentry
 
 import assets
@@ -24,6 +25,8 @@ app = flask.Flask(
     __name__,
     static_folder=os.path.join(PROJECT_ROOT, 'static'),
     template_folder=os.path.join(PROJECT_ROOT, 'templates'))
+app.register_blueprint(sse, url_prefix='/stream')
+
 db = SQLAlchemy(session_options={'autocommit': True})
 redis = Redis()
 sentry = Sentry(logging=True, level=logging.WARN)
@@ -214,7 +217,7 @@ def create_projects():
             project_data={
                 'stages': {
                     'production': {
-                        'command': 'Mockup data',
+                        'command': 'ls',
                         'locked': False,
                         'last_deploy': {
                             'id': 1,
@@ -223,8 +226,8 @@ def create_projects():
                         }
                     },
                     'dev1': {
-                        'command': 'Mockup data',
-                        'locked': True,
+                        'command': 'python -c \'for _ in range(1000): print 1000\'',
+                        'locked': False,
                         'last_deploy': {}
                     }
                 }
@@ -279,13 +282,16 @@ def project_stages(project_id):
         'body_class': 'stages index',
         'project': project})
 
-@app.route('/projects/<project_id>/stages/new', endpoint='new_project_stages')
+
+@app.route('/projects/<project_id>/stages/new', endpoint='new_project_stages', methods=['GET', 'POST'])
 @role_required([UserRole.admin])
 def create_project_stage(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         abort(404)
-    json_data = json.loads(request.data)
+    if request.method == 'POST':
+        json_data = json.loads(request.data)
+        return jsonify({'status': 'ok'})
     return render_template('stages/index.html', **{
         'body_class': 'stages index',
         'project': project})
@@ -302,7 +308,10 @@ def project_deploys(project_id):
         'project': project})
 
 
-@app.route('/projects/<project_id>/stages/<stage_name>/deploys/new', endpoint='new_project_deploy')
+@app.route(
+    '/projects/<project_id>/stages/<stage_name>/deploys/new',
+    endpoint='new_project_deploy',
+    methods=['GET', 'POST'])
 def create_project_deploy(project_id, stage_name):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
@@ -312,8 +321,43 @@ def create_project_deploy(project_id, stage_name):
             'body_class': 'deploys new',
             'project': project})
     elif request.method == 'POST':
-        reference = request.form.reference
-        return redirect(url_for('project_deploy', project_id=project_id, deploy_id=1))
+        from rq import Queue
+        import vcs
+        from utils.workspace import Workspace
+        from utils.redis import lock
+        from tasks import execute_task
+
+        reference = request.form['reference']
+        # TODO: Check param ref
+        workspace = Workspace(
+            path=project.get_path(),
+        )
+
+        vcs_backend = vcs.get(
+            'git',
+            url=project.repository_data['url'],
+            workspace=workspace,
+        )
+
+        with lock(redis, 'repo:update:{}'.format(project.id)):
+            vcs_backend.clone_or_update()
+
+        with lock(redis, 'task:create:{}'.format(project.id), timeout=5):
+            task = models.Task(
+                project_id=project.id,
+                stage=stage_name,
+                name=models.TaskName.deploy,
+                sha=reference,
+                status=models.TaskStatus.pending,
+                user_id=get_current_user().id,
+                data={
+                },
+            )
+            db.session.add(task)
+            db.session.flush()
+        q = Queue('fad-tasks', connection=redis.connection)
+        q.enqueue(execute_task.execute_task, task.id)
+        return redirect(url_for('project_deploy', project_id=project_id, deploy_id=task.id))
 
 
 @app.route('/projects/<project_id>/deploys/<deploy_id>', endpoint='project_deploy')
