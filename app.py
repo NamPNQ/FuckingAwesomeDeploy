@@ -199,7 +199,7 @@ def get_list_projects():
 
 @app.route('/projects/new', endpoint='new_project', methods=['GET', 'POST'])
 @role_required([UserRole.admin])
-def create_projects():
+def new_project():
     if request.method == 'GET':
         return render_template('projects/new.html', **{
             'body_class': 'projects new',
@@ -263,7 +263,7 @@ def get_project(project_id):
 
 @app.route('/projects/<project_id>/edit', endpoint='edit_project')
 @role_required([UserRole.admin])
-def get_project(project_id):
+def edit_project(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         return abort(404)
@@ -284,13 +284,23 @@ def project_stages(project_id):
 
 
 @app.route('/projects/<project_id>/stages/new', endpoint='new_project_stages', methods=['GET', 'POST'])
+@app.route('/projects/<project_id>/stages/update', endpoint='update_project_stages', methods=['POST'])
 @role_required([UserRole.admin])
-def create_project_stage(project_id):
+def new_or_update_project_stages(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         return abort(404)
     if request.method == 'POST':
         json_data = json.loads(request.data)
+        stage_name = json_data.get('name', None)
+        stage_command = json_data.get('command', None)
+        stage_locked = json_data.get('locked', None)
+        project.project_data['stages'][stage_name] = {
+            'command': stage_command,
+            'locked': stage_locked
+        }
+        db.session.add(project)
+        db.session.flush()
         return jsonify({'status': 'ok'})
     return render_template('stages/index.html', **{
         'body_class': 'stages index',

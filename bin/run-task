@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 
 import logging
-import os
 import sys
 
 from datetime import datetime
 from flask import current_app
 
-# from freight import providers, vcs
-# from freight.config import create_app, db, redis
-# from freight.models import App, LogChunk, Repository, Task, TaskStatus
-# from freight.utils.redis import lock
-# from freight.utils.workspace import TemporaryWorkspace, Workspace
 import providers
 import vcs
 from app import db, redis
@@ -55,12 +49,13 @@ def main(task_id):
 
         try:
             setattr(task, 'command', project.stages[task.stage]['command'])
-            provider.execute(workspace, task)
+            output = provider.capture(workspace, task)
         except Exception as exc:
             current_app.logger.exception(unicode(exc))
             task.status = TaskStatus.failed
         else:
             task.status = TaskStatus.finished
+            task.data['output'] = output
         task.date_finished = datetime.utcnow()
         db.session.add(task)
         db.session.flush()

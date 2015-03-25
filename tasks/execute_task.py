@@ -66,9 +66,9 @@ class LogReporter(Thread):
         # ))
         send_event('append', json.dumps({'msg': text}), 'log_task_' + str(self.task_id))
 
-        # we flush immediately to ensure the API can stream logs
-        with app.app_context():
-            db.session.flush()
+        # # we flush immediately to ensure the API can stream logs
+        # with app.app_context():
+        #     db.session.flush()
         self.cur_offset += text_len
 
     def terminate(self):
@@ -151,6 +151,7 @@ class TaskRunner(object):
         # so it can still manage the failure state
         self.task.status = TaskStatus.failed
         self.task.date_finished = datetime.utcnow()
+        self.task.data['output'] = self._logreporter.output
         with app.app_context():
             db.session.add(self.task)
             db.session.flush()
@@ -166,6 +167,7 @@ class TaskRunner(object):
         # TODO(dcramer): ideally we could just send the signal to the subprocess
         # so it can still manage the failure state
         self.task.date_finished = datetime.utcnow()
+        self.task.data['output'] = self._logreporter.output
         with app.app_context():
             db.session.add(self.task)
             db.session.flush()

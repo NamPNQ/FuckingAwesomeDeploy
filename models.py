@@ -17,27 +17,11 @@ class Project(db.Model):
     created_date = Column(DateTime, default=datetime.utcnow)
 
     @property
-    def checks(self):
-        return self.project_data.get('checks', [])
-
-    @property
-    def notifiers(self):
-        return self.project_data.get('notifiers', [])
-
-    @property
-    def provider_config(self):
-        return self.project_data.get('provider_config', {})
-
-    @property
-    def stages(self):
-        return self.project_data.get('stages', [])
-
-    @property
     def stages_data(self):
         stages = []
         data = self.project_data.get('stages', [])
         for k, v in data.iteritems():
-            stages.append(dict({'name': k}, **v))
+            stages.append(Stage(self.id, k, **v))
         return stages
 
     def get_path(self):
@@ -45,6 +29,21 @@ class Project(db.Model):
         return os.path.join(
             current_app.config['WORKSPACE_ROOT'], 'fab-repo-{}'.format(self.id)
         )
+
+
+class Stage(object):
+    def __init__(self, project_id, name, **kwargs):
+        self.project_id = project_id
+        self.name = name
+        self.data = kwargs
+
+    @property
+    def last_deploy(self):
+        deploy = Task.query.filter(Task.project_id == self.project_id and Task.stage == self.name).first()
+        return deploy
+
+    def __getattr__(self, item):
+        return self.data.get(item, None)
 
 
 class TaskName(object):
@@ -107,18 +106,6 @@ class Task(db.Model):
     finished_date = Column(DateTime)
 
     @property
-    def checks(self):
-        return self.data.get('checks', [])
-
-    @property
-    def notifiers(self):
-        return self.data.get('notifiers', [])
-
-    @property
-    def provider_config(self):
-        return self.data.get('provider_config', {})
-
-    @property
     def status_label(self):
         return STATUS_LABELS.get(int(self.status), 'unknown')
 
@@ -135,6 +122,10 @@ class Task(db.Model):
     @property
     def active(self):
         return int(self.status) in [TaskStatus.pending, TaskStatus.in_progress]
+
+    @property
+    def is_failed(self):
+        return int(self.status) == TaskStatus.failed
 
 
 class UserRole(object):
