@@ -1,0 +1,7 @@
+<pre id="messages" class="pre-scrollable log">
+{% if not deploy.active %}
+    {% for line in deploy.output.split("\n") %}
+        {{ line | safe }}
+    {% endfor %}
+{% endif %}
+</pre>

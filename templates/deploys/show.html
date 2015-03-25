@@ -1,0 +1,36 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+<div id="header" class="stream-header">
+  {% include "deploys/_header.html" %}
+</div>
+
+<ul id="deploy-tabs" class="nav nav-tabs">
+  <li class="active"><a href="#output" data-toggle="tab">Output</a></li>
+</ul>
+
+<section class="clearfix tabs">
+  <div class="tab-content deploy-details">
+    <div class="tab-pane active" id="output" data-stream-url="{{ url_for('sse.stream', channel='log_task_%s' % deploy.id) }}">
+      {% include 'deploys/_output.html' %}
+    </div>
+
+  </div>
+
+  {% if deploy.active %}
+  <script>
+      toggleOutputToolbar();
+      startStream();
+  </script>
+  {% else %}
+  <script>
+      function check_enabled() {
+            window.location.reload();
+      }
+
+      $(document).ready(function() {
+        setTimeout(check_enabled, 5000);
+      });
+  </script>
+  {% endif %}
+</section>
+{% endblock %}

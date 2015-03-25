@@ -247,7 +247,7 @@ def create_projects():
 def get_project(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     if request.method == 'DELETE':
         user = get_current_user()
         if user.role != UserRole.admin:
@@ -266,7 +266,7 @@ def get_project(project_id):
 def get_project(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     return render_template('projects/edit.html', **{
         'body_class': 'projects edit',
         'project': project})
@@ -277,7 +277,7 @@ def get_project(project_id):
 def project_stages(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     return render_template('stages/index.html', **{
         'body_class': 'stages index',
         'project': project})
@@ -288,7 +288,7 @@ def project_stages(project_id):
 def create_project_stage(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     if request.method == 'POST':
         json_data = json.loads(request.data)
         return jsonify({'status': 'ok'})
@@ -302,7 +302,7 @@ def create_project_stage(project_id):
 def project_deploys(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     return render_template('deploys/index.html', **{
         'body_class': 'deploys index',
         'project': project})
@@ -315,7 +315,7 @@ def project_deploys(project_id):
 def create_project_deploy(project_id, stage_name):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
-        abort(404)
+        return abort(404)
     if request.method == 'GET':
         return render_template('deploys/new.html', **{
             'body_class': 'deploys new',
@@ -362,7 +362,17 @@ def create_project_deploy(project_id, stage_name):
 
 @app.route('/projects/<project_id>/deploys/<deploy_id>', endpoint='project_deploy')
 def project_deploy(project_id, deploy_id):
-    pass
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        return abort(404)
+    deploy = models.Task.query.filter(models.Task.id == deploy_id).first()
+    if not deploy:
+        return abort(404)
+    return render_template('deploys/show.html', **{
+        'body_class': 'deploys show',
+        'project': project,
+        'deploy': deploy})
+
 
 
 @app.route('/projects/<project_id>/webhooks', endpoint='project_webhooks')
