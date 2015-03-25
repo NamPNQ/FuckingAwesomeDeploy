@@ -129,8 +129,12 @@ class Task(db.Model):
         return float('%.2f' % (self.date_finished - self.date_started).total_seconds())
 
     @property
-    def log(self):
-        return self.data.get('log', '')
+    def output(self):
+        return self.data.get('output', '')
+
+    @property
+    def active(self):
+        return int(self.status) in [TaskStatus.pending, TaskStatus.in_progress]
 
 
 class UserRole(object):

@@ -64,7 +64,7 @@ class LogReporter(Thread):
         #     offset=self.cur_offset,
         #     size=text_len,
         # ))
-        send_event('log', json.dumps({'text': text}), 'log_task_' + str(self.task_id))
+        send_event('append', json.dumps({'msg': text}), 'log_task_' + str(self.task_id))
 
         # we flush immediately to ensure the API can stream logs
         with app.app_context():
