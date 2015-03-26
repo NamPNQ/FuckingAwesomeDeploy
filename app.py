@@ -5,7 +5,8 @@ import hashlib
 import logging
 import flask
 import urlparse
-from flask import redirect, request, session, url_for, render_template, current_app, flash, abort, jsonify
+from flask import redirect, request, session, url_for, \
+    render_template, current_app, flash, abort, jsonify, make_response
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from flask.ext.sse import sse
@@ -216,20 +217,6 @@ def new_project():
             description=description,
             project_data={
                 'stages': {
-                    'production': {
-                        'command': 'ls',
-                        'locked': False,
-                        'last_deploy': {
-                            'id': 1,
-                            'is_failed': True,
-                            'short_reference': 'master'
-                        }
-                    },
-                    'dev1': {
-                        'command': 'python -c \'for _ in range(1000): print 1000\'',
-                        'locked': False,
-                        'last_deploy': {}
-                    }
                 }
             },
             repository_data={
@@ -390,9 +377,7 @@ def create_project_deploy(project_id, stage_name):
                 name=models.TaskName.deploy,
                 sha=reference,
                 status=models.TaskStatus.pending,
-                user_id=get_current_user().id,
-                data={
-                },
+                user_id=get_current_user().id
             )
             db.session.add(task)
             db.session.flush()
@@ -409,6 +394,11 @@ def project_deploy(project_id, deploy_id):
     deploy = models.Task.query.filter(models.Task.id == deploy_id).first()
     if not deploy:
         return abort(404)
+    if request.args.get('format', '') == 'text':
+        response = make_response(deploy.output)
+        response.headers["Content-Disposition"] =\
+            "attachment; filename=deploy_{}_{}_{}_log.log".format(project.name, deploy.stage, deploy.id)
+        return response
     return render_template('deploys/show.html', **{
         'body_class': 'deploys show',
         'project': project,

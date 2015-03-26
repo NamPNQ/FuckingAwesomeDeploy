@@ -13,4 +13,3 @@ requests
 git+https://github.com/NamPNQ/flask-sse
 rq
 gunicorn
-gevent

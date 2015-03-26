@@ -2,10 +2,12 @@ from werkzeug.serving import run_simple
 from werkzeug.wsgi import DispatcherMiddleware
 
 from app import app
+# noinspection PyUnresolvedReferences
+# import gevent_fix
 
 application = DispatcherMiddleware(app)
 
-# Run: gunicorn -w 1 -k gevent -t 5 wsgi:application
+# Run: gunicorn -w 1 -t 5 wsgi:application -b 0.0.0.0:5000
 
 if __name__ == "__main__":
     run_simple('0.0.0.0', 5000, application, use_reloader=True, use_debugger=True)

@@ -154,6 +154,7 @@ function startStream() {
             updateStatus(e);
             toggleOutputToolbar();
             source.close();
+            window.location.reload();
         }, false);
     });
 }

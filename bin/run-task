@@ -57,10 +57,7 @@ def main(task_id):
             task.status = TaskStatus.failed
         else:
             task.status = TaskStatus.finished
-        send_event('finished', json.dumps({'data': {'html': render_template('deploys/_header.html', **{
-            'project': project,
-            'deploy': task
-        })}}), 'log_task_' + str(task.id))
+        send_event('finished', json.dumps({'data': {'html': ''}}), 'log_task_' + str(task.id))
         task.date_finished = datetime.utcnow()
         db.session.add(task)
         db.session.flush()
