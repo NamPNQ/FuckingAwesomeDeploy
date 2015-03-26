@@ -5,8 +5,6 @@ DEBUG = True
 
 PROJECT_NAME = 'Fs Deploy Tool'
 
-SERVER_NAME = 'localhost:5000'
-
 SECRET_KEY = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
 
 SSH_PRIVATE_KEY = ''
