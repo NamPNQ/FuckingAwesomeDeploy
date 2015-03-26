@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, and_
 
 from app import db
 from db.types.json import JSONEncodedDict
@@ -44,7 +44,7 @@ class Stage(object):
     @property
     def last_deploy(self):
         deploy = Task.query.\
-            filter(Task.project_id == self.project_id and Task.stage == self.name).\
+            filter(and_(Task.project_id == self.project_id, Task.stage == self.name.lower())).\
             order_by(Task.created_date.desc()).first()
         return deploy
 
@@ -130,7 +130,8 @@ class Task(db.Model):
 
     @property
     def status_label_class(self):
-        return 'success' if int(self.status) in [TaskStatus.finished, TaskStatus.pending, TaskStatus.in_progress] else 'danger'
+        return 'success' if \
+            int(self.status) in [TaskStatus.finished, TaskStatus.pending, TaskStatus.in_progress] else 'danger'
 
     @property
     def duration(self):
