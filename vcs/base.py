@@ -1,7 +1,6 @@
 import os
 import os.path
 
-from constants import PROJECT_ROOT
 from errors import CommandError
 
 
@@ -10,8 +9,6 @@ class UnknownRevision(CommandError):
 
 
 class Vcs(object):
-    ssh_connect_path = os.path.join(PROJECT_ROOT, 'bin', 'ssh-connect')
-
     def __init__(self, workspace, url, username=None):
         self.url = url
         self.username = username
@@ -23,21 +20,12 @@ class Vcs(object):
     def path(self):
         return self.workspace.path
 
-    def get_default_env(self):
-        return {}
-
     def run(self, command, capture=False, workspace=None, *args, **kwargs):
         if workspace is None:
             workspace = self.workspace
 
         if not self.exists(workspace=workspace):
             kwargs.setdefault('cwd', None)
-
-        env = kwargs.pop('env', {})
-        for key, value in self.get_default_env().iteritems():
-            env.setdefault(key, value)
-        env.setdefault('FREIGHT_SSH_REPO', self.url)
-        kwargs['env'] = env
 
         if capture:
             handler = workspace.capture

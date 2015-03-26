@@ -308,6 +308,7 @@ def new_or_update_project_stages(project_id, old_stage_name):
         stage_locked = json_data.get('locked', False)
         if not stage_name or not stage_command:
             return jsonify({'status': 'failed'})
+        stage_name = stage_name.lower()
         project.project_data['stages'] = project.project_data['stages'].copy()
         if old_stage_name and old_stage_name in project.project_data['stages'].keys():
             del project.project_data['stages'][old_stage_name]
@@ -340,10 +341,12 @@ def project_deploys(project_id):
     '/projects/<project_id>/stages/<stage_name>/deploys/new',
     endpoint='new_project_deploy',
     methods=['GET', 'POST'])
+@role_required([UserRole.developer, UserRole.admin])
 def create_project_deploy(project_id, stage_name):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         return abort(404)
+    stage_name = stage_name.lower()
     if request.method == 'GET':
         return render_template('deploys/new.html', **{
             'body_class': 'deploys new',
@@ -387,6 +390,7 @@ def create_project_deploy(project_id, stage_name):
 
 
 @app.route('/projects/<project_id>/deploys/<deploy_id>', endpoint='project_deploy')
+@login_required
 def project_deploy(project_id, deploy_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
@@ -417,6 +421,7 @@ def project_webhooks(project_id):
 
 
 @app.route('/deploys/recent', endpoint='recent_deploys')
+@login_required
 def recent_deploys():
     deploys = models.Task.query.order_by(models.Task.created_date.desc()).limit(10)
     return render_template('deploys/recent.html', **{
@@ -425,6 +430,7 @@ def recent_deploys():
 
 
 @app.route('/deploys/active', endpoint='active_deploys')
+@login_required
 def active_deploys():
     deploys = models.Task.query.filter(models.Task.status == models.TaskStatus.in_progress)
     return render_template('deploys/active.html', **{

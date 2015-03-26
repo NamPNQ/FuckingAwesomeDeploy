@@ -86,5 +86,5 @@ class TemporaryWorkspace(Workspace):
     def __init__(self):
         self.path = os.path.join(
             current_app.config['WORKSPACE_ROOT'],
-            'fadeploy-workspace-{}'.format(uuid1().hex),
+            'fad-workspace-{}'.format(uuid1().hex),
         )

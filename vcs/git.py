@@ -10,11 +10,6 @@ from .base import Vcs, CommandError, UnknownRevision
 class GitVcs(Vcs):
     binary_path = 'git'
 
-    def get_default_env(self):
-        return {
-            'GIT_SSH': self.ssh_connect_path,
-        }
-
     def get_default_revision(self):
         return 'master'
 
