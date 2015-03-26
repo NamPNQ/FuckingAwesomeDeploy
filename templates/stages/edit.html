@@ -1,9 +1,0 @@
-<% content_for(:page_title, "Editing #{@stage.name} (#{@project.name})") %>
-
-<%= breadcrumb @project, @stage %>
-
-<h1>Edit stage</h1>
-
-<section>
-  <%= render 'form', project: @project, stage: @stage %>
-</section>

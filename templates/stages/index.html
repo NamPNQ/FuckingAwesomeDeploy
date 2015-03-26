@@ -12,13 +12,14 @@
         <div class="btn-group pull-right">
           {% if current_user.is_admin %}
               <a class="btn btn-default clone-stage-btn">Clone</a>
+              <a class="btn btn-danger clone-stage-btn" href="{{ url_for('update_project_stages', project_id=project.id, old_stage_name=stage.name) }}?_method=delete">Delete</a>
           {% endif %}
         </div>
       <br>
       <div class="panel panel-default panel-edit-stage" style="display:none; margin-top:20px">
           <div class="panel-heading">Update info of stage</div>
           <div class="panel-body">
-            <form>
+          <form class="edit-stage-form" action-url="{{ url_for('update_project_stages', project_id=project.id, old_stage_name=stage.name) }}">
           <fieldset>
               <fieldset>
                   <legend>Info</legend>
@@ -36,24 +37,20 @@
             </fieldset>
           </fieldset>
           <hr>
-          <button type="submit" class="btn btn-default">Save</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a class="btn btn-default cancel-save-stage">Cancel</a>
         </form>
           </div>
       </div>
       </li>
       {% endfor %}
-      <li class="stage-bar bar list-unstyled clearfix" style="display:none;">
+      <li class="stage-bar bar list-unstyled clearfix new-stage-item" style="display:none;">
         ::: {{ project.name }}: <a class="edit-stage-btn">New stage</a>
-        <div class="btn-group pull-right">
-          {% if current_user.is_admin %}
-              <a class="btn btn-default clone-stage-btn">Clone</a>
-          {% endif %}
-        </div>
       <br>
       <div class="panel panel-default panel-edit-stage" style="margin-top:20px">
           <div class="panel-heading">Update info of stage</div>
           <div class="panel-body">
-            <form>
+          <form class="new-stage-form" action-url="{{ url_for('new_project_stages', project_id=project.id) }}">
           <fieldset>
               <fieldset>
                   <legend>Info</legend>
@@ -72,12 +69,8 @@
           </fieldset>
           <hr>
 
-          <div class="form-group">
-            <div class="col-lg-10">
-              <button class="btn btn-default">Save</button>
-              <button class="btn btn-default">Cancel</button>
-            </div>
-          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a class="btn btn-default cancel-save-stage">Cancel</a>
         </form>
           </div>
       </div>
@@ -85,7 +78,7 @@
   </ul>
 
   {% if current_user.is_admin %}
-      <a class="btn btn-default">Add stage</a>
+      <a class="btn btn-default new-stage-btn">Add stage</a>
   {% endif %}
 
 </section>
