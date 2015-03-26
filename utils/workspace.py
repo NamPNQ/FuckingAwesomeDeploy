@@ -36,22 +36,23 @@ class Workspace(object):
 
         kwargs.setdefault('cwd', self.path)
 
-        if isinstance(command, basestring):
-            command = shlex.split(command)
-        command = map(str, command)
+        # if isinstance(command, basestring):
+        #     command = shlex.split(command)
+        # command = map(str, command)
 
         env = os.environ.copy()
         for key, value in kwargs.pop('env', {}).iteritems():
             env[key] = value
 
         kwargs['env'] = env
+        kwargs['shell'] = True
 
         self.log.info('>> Running {}'.format(command))
         try:
             proc = Popen(command, *args, **kwargs)
         except OSError as exc:
             if not self.whereis(command[0], env):
-                msg = 'ERROR: Command not found: {}'.format(command[0])
+                msg = 'ERROR: Command not found: {}'.format(command.split()[0])
             else:
                 msg = traceback.format_exc()
             raise CommandError(command, 1, stdout=None, stderr=msg)

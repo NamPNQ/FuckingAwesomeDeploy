@@ -21,16 +21,6 @@
       toggleOutputToolbar();
       startStream();
   </script>
-  {% else %}
-  <script>
-      function check_enabled() {
-            window.location.reload();
-      }
-
-      $(document).ready(function() {
-        setTimeout(check_enabled, 5000);
-      });
-  </script>
   {% endif %}
 </section>
 {% endblock %}

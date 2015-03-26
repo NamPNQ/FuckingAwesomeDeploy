@@ -1,0 +1,19 @@
+{% extends "layouts/application.html" %}
+{% block content %}
+{% with tab='webhooks' %}
+    {% include 'projects/_header.html' %}
+{% endwith %}
+
+<section class="tabs">
+  <p>In order to automatically trigger a deploy to a stage, add a branch &rarr; stage mapping below
+  and paste in the project's webhook URL to your CI service of choice.</p>
+
+  <dl>
+    <dt>Travis:</dt><dd>Comming soon.</dd>
+    <dt>Jenkins:</dt><dd>Comming soon.</dd>
+    <dt>Github Push:</dt><dd>Comming soon.</dd>
+  </dl>
+
+</section>
+
+{% endblock %}

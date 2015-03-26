@@ -1,45 +1,29 @@
-<h1>Recent Deploys</h1>
+{% extends "layouts/application.html" %}
+{% block content %}
+<h1>Recents Deploys</h1>
 
-<div class="timeline" ng-controller="TimelineCtrl">
-  <div class="timeline-filters clearfix">
-    <div class="timeline-filter col-sm-6">
-      <label for="tlf-project-user">SEARCH</label>
-      <input id="tlf-project-user" class="form-control" type="text" ng-model="search" placeholder="Search project or user">
-    </div>
-    <div class="timeline-filter col-sm-2">
-      <label for="tlf-user-type">USER TYPE</label>
-      <select id="tlf-user-type" class="form-control" ng-model="userType" ng-options="option for option in userTypes">
-        <option value="">All</option>
-      </select>
-    </div>
-    <div class="timeline-filter col-sm-2">
-      <label for="tlf-prod">STAGE</label>
-      <select id="tlf-prod" class="form-control" ng-model="stageType" ng-options="value as key for (key, value) in stageTypes">
-        <option value="">All</option>
-      </select>
-    </div>
-    <div class="timeline-filter col-sm-2">
-      <label for="tlf-status">STATUS</label>
-      <select id="tlf-status" class="form-control" ng-model="deployStatus" ng-options="status for status in deployStatuses">
-        <option value="">All</option>
-      </select>
-    </div>
-  </div>
-  <section class="timeline-content clearfix">
-    <table class="timeline-content">
+<section>
+  <table class="table">
+    <thead>
       <tr>
-        <th>PROJECT</th>
-        <th>USER</th>
-        <th>DEPLOY</th>
-        <th>LAST UPDATE</th>
-        <th>STATUS</th>
+        <th>Project</th>
+        <th>Who</th>
+        <th>When</th>
+        <th>Status</th>
         <th></th>
       </tr>
-      <%= render partial: "timeline_entry" %>
-    </table>
-    <%# if there is not enough height for scrolling %>
-    <div ng-if="shortWindow()" class="timeline-show-more">
-      <span class="btn btn-default" ng-click="timelineDeploys.loadMore()">Load More .. {{timelineDeploys.page}}</span>
-    </div>
-  </section>
-</div>
+    </thead>
+    <tbody>
+        {% for deploy in deploys %}
+            <tr>
+              <td><a href="{{ url_for('project', project_id=deploy.project.id) }}">{{ deploy.project.name }}</a></td>
+              <td><a href="{{ url_for('project_deploy', project_id=deploy.project.id, deploy_id=deploy.id) }}">{{ deploy.summary }}</a></td>
+              <td>{{ deploy.created_date }}</td>
+              <td><span class="label label-{{ deploy.status_label_class }}">{{ deploy.status_label }}</span></td>
+              <td><a class="btn btn-default btn-xs" href="{{ url_for('project_deploy', project_id=deploy.project.id, deploy_id=deploy.id) }}">View</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

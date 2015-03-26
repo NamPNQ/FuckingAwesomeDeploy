@@ -34,7 +34,7 @@ class GitVcs(Vcs):
         return url
 
     def run(self, cmd, **kwargs):
-        cmd = [self.binary_path] + cmd
+        cmd = '{} {}'.format(self.binary_path, cmd)
         try:
             return super(GitVcs, self).run(cmd, **kwargs)
         except CommandError as e:
@@ -48,21 +48,21 @@ class GitVcs(Vcs):
             raise
 
     def clone(self):
-        self.run(['clone', '--mirror', self.remote_url, self.path])
+        self.run('clone --mirror %s %s' % (self.remote_url, self.path))
 
     def update(self):
         # in case we have a non-mirror checkout, wipe it out
         if os.path.exists(os.path.join(self.workspace.path, '.git')):
-            self.run(['rm', '-rf', self.workspace.path])
+            self.run('rm -rf %s' % self.workspace.path)
             self.clone()
         else:
-            self.run(['fetch', '--all', '-p'])
+            self.run('fetch --all -p')
 
     def checkout(self, ref, new_workspace):
-        self.run(['clone', self.workspace.path, new_workspace.path],
+        self.run('clone %s %s' % (self.workspace.path, new_workspace.path),
                  workspace=new_workspace)
-        self.run(['reset', '--hard', ref], workspace=new_workspace)
+        self.run('reset --hard %s' % ref, workspace=new_workspace)
 
     def describe(self, ref):
-        return self.run(['describe', '--always', '--abbrev=0', ref],
+        return self.run('describe --always --abbrev=0 %s' % ref,
                         capture=True)

@@ -5,4 +5,4 @@
   </div>
 </h1>
 
-{#<%= deploy_status_panel @deploy %>#}
+<div class="alert alert-{{ deploy.status_label_class }}"> {{ deploy.summary }} - {{ deploy.status_label | upper }}</div>

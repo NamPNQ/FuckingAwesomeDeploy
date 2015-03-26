@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 
 from app import db
 from db.types.json import JSONEncodedDict
@@ -17,9 +17,13 @@ class Project(db.Model):
     created_date = Column(DateTime, default=datetime.utcnow)
 
     @property
+    def stages(self):
+        return self.project_data.get('stages', {})
+
+    @property
     def stages_data(self):
         stages = []
-        data = self.project_data.get('stages', [])
+        data = self.project_data.get('stages', {})
         for k, v in data.iteritems():
             stages.append(Stage(self.id, k, **v))
         return stages
@@ -27,7 +31,7 @@ class Project(db.Model):
     def get_path(self):
         from flask import current_app
         return os.path.join(
-            current_app.config['WORKSPACE_ROOT'], 'fab-repo-{}'.format(self.id)
+            current_app.config['WORKSPACE_ROOT'], 'fad-repo-{}'.format(self.id)
         )
 
 
@@ -39,11 +43,26 @@ class Stage(object):
 
     @property
     def last_deploy(self):
-        deploy = Task.query.filter(Task.project_id == self.project_id and Task.stage == self.name).first()
+        deploy = Task.query.\
+            filter(Task.project_id == self.project_id and Task.stage == self.name).\
+            order_by(Task.created_date.desc()).first()
         return deploy
 
     def __getattr__(self, item):
         return self.data.get(item, None)
+
+
+class LogChunk(db.Model):
+    __tablename__ = 'logchunk'
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), nullable=False)
+    # offset is sum(c.size for c in chunks_before_this)
+    offset = Column(Integer, nullable=False)
+    # size is len(text)
+    size = Column(Integer, nullable=False)
+    text = Column(Text, nullable=False)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 class TaskName(object):
@@ -110,6 +129,10 @@ class Task(db.Model):
         return STATUS_LABELS.get(int(self.status), 'unknown')
 
     @property
+    def status_label_class(self):
+        return 'success' if int(self.status) in [TaskStatus.finished, TaskStatus.pending, TaskStatus.in_progress] else 'danger'
+
+    @property
     def duration(self):
         if not self.date_finished:
             return
@@ -117,7 +140,13 @@ class Task(db.Model):
 
     @property
     def output(self):
-        return self.data.get('output', '')
+        queryset = db.session.query(
+            LogChunk.text, LogChunk.offset, LogChunk.size
+        ).filter(
+            LogChunk.task_id == self.id,
+        ).order_by(LogChunk.offset.asc())
+        logchunks = list(queryset)
+        return ''.join(l.text for l in logchunks)
 
     @property
     def active(self):
@@ -126,6 +155,18 @@ class Task(db.Model):
     @property
     def is_failed(self):
         return int(self.status) == TaskStatus.failed
+
+    @property
+    def user(self):
+        return User.query.filter(User.id == self.user_id).first()
+
+    @property
+    def project(self):
+        return Project.query.filter(Project.id == self.project_id).first()
+
+    @property
+    def summary(self):
+        return '%s deployed %s to %s' % (self.user.name, self.sha, self.stage)
 
 
 class UserRole(object):
@@ -168,3 +209,6 @@ class User(db.Model):
     @property
     def is_admin(self):
         return self.role == UserRole.admin
+
+    def can_deploy(self):
+        return self.role in [UserRole.admin, UserRole.developer]

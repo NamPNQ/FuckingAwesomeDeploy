@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import json
 import logging
 import sys
 
@@ -12,6 +12,8 @@ from app import db, redis
 from models import Project, Task, TaskStatus
 from utils.redis import lock
 from utils.workspace import Workspace, TemporaryWorkspace
+from flask.ext.sse import send_event
+from flask import render_template
 
 
 def main(task_id):
@@ -49,13 +51,16 @@ def main(task_id):
 
         try:
             setattr(task, 'command', project.stages[task.stage]['command'])
-            output = provider.capture(workspace, task)
+            provider.execute(workspace, task)
         except Exception as exc:
             current_app.logger.exception(unicode(exc))
             task.status = TaskStatus.failed
         else:
             task.status = TaskStatus.finished
-            task.data['output'] = output
+        send_event('finished', json.dumps({'data': {'html': render_template('deploys/_header.html', **{
+            'project': project,
+            'deploy': task
+        })}}), 'log_task_' + str(task.id))
         task.date_finished = datetime.utcnow()
         db.session.add(task)
         db.session.flush()
