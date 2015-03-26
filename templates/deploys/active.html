@@ -1,3 +1,5 @@
+{% extends "layouts/application.html" %}
+{% block content %}
 <h1>Current Deploys</h1>
 
 <section>
@@ -6,13 +8,22 @@
       <tr>
         <th>Project</th>
         <th>Who</th>
+        <th>When</th>
         <th>Status</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: "deploy", collection: @deploys.to_a.compact %>
+        {% for deploy in deploys %}
+            <tr>
+              <td><a href="{{ url_for('project', project_id=deploy.project.id) }}">{{ deploy.project.name }}</a></td>
+              <td><a href="{{ url_for('project_deploy', project_id=deploy.project.id, deploy_id=deploy.id) }}">{{ deploy.summary }}</a></td>
+              <td>{{ deploy.created_date }}</td>
+              <td><span class="label label-{{ deploy.status_label_class }}">{{ deploy.status_label }}</span></td>
+              <td><a class="btn btn-default btn-xs" href="{{ url_for('project_deploy', project_id=deploy.project.id, deploy_id=deploy.id) }}">View</a></td>
+            </tr>
+        {% endfor %}
     </tbody>
   </table>
-  <%= paginate @deploys %>
 </section>
+{% endblock %}

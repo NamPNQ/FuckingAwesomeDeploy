@@ -261,12 +261,27 @@ def get_project(project_id):
             'project': project})
 
 
-@app.route('/projects/<project_id>/edit', endpoint='edit_project')
+@app.route('/projects/<project_id>/edit', endpoint='edit_project', methods=['GET', 'POST'])
 @role_required([UserRole.admin])
 def edit_project(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         return abort(404)
+    if request.method == 'POST':
+        data = request.form
+        name = data.get('name')
+        description = data.get('description')
+        repository_url = data.get('repository_url')
+        repository_ssh_key = data.get('repository_ssh_key')
+        project.name = name
+        project.description = description
+        project.repository_data = {
+            'url': repository_url,
+            'ssh_key': repository_ssh_key
+        }
+        db.session.add(project)
+        db.session.flush()
+        flash('Update success', 'success')
     return render_template('projects/edit.html', **{
         'body_class': 'projects edit',
         'project': project})
@@ -304,7 +319,7 @@ def new_or_update_project_stages(project_id, old_stage_name):
         stage_name = json_data.get('name', None)
         stage_command = json_data.get('command', None)
         stage_locked = json_data.get('locked', False)
-        if not stage_name or stage_command:
+        if not stage_name or not stage_command:
             return jsonify({'status': 'failed'})
         project.project_data['stages'] = project.project_data['stages'].copy()
         if old_stage_name and old_stage_name in project.project_data['stages'].keys():
@@ -322,14 +337,16 @@ def new_or_update_project_stages(project_id, old_stage_name):
 
 
 @app.route('/projects/<project_id>/deploys', endpoint='project_deploys')
-@role_required([UserRole.admin, UserRole.developer])
+@login_required
 def project_deploys(project_id):
     project = models.Project.query.filter(models.Project.id == project_id).first()
     if not project:
         return abort(404)
+    deploys = models.Task.query.filter(models.Task.project_id == project_id).order_by(models.Task.created_date.desc())
     return render_template('deploys/index.html', **{
         'body_class': 'deploys index',
-        'project': project})
+        'project': project,
+        'deploys': deploys})
 
 
 @app.route(
@@ -398,35 +415,31 @@ def project_deploy(project_id, deploy_id):
         'deploy': deploy})
 
 
-
 @app.route('/projects/<project_id>/webhooks', endpoint='project_webhooks')
+@login_required
 def project_webhooks(project_id):
-    pass
-
-
-@app.route('/tasks/')
-def get_list_tasks():
-    pass
-
-
-@app.route('/tasks/<task_id>/')
-def get_list_task(task_id):
-    pass
-
-
-@app.route('/tasks/<task_id>/log/')
-def get_task_log(task_id):
-    pass
+    project = models.Project.query.filter(models.Project.id == project_id).first()
+    if not project:
+        return abort(404)
+    return render_template('webhooks/index.html', **{
+        'body_class': 'webhooks index',
+        'project': project})
 
 
 @app.route('/deploys/recent', endpoint='recent_deploys')
 def recent_deploys():
-    return abort(503)
+    deploys = models.Task.query.order_by(models.Task.created_date.desc()).limit(10)
+    return render_template('deploys/recent.html', **{
+        'body_class': 'deploys recent',
+        'deploys': deploys})
 
 
 @app.route('/deploys/active', endpoint='active_deploys')
 def active_deploys():
-    return abort(503)
+    deploys = models.Task.query.filter(models.Task.status == models.TaskStatus.in_progress)
+    return render_template('deploys/active.html', **{
+        'body_class': 'deploys active',
+        'deploys': deploys})
 
 
 @app.route('/admin/projects', endpoint='admin_projects')
@@ -439,9 +452,19 @@ def admin_projects():
 
 
 @app.route('/admin/users', endpoint='admin_users', defaults={'user_id': None})
-@app.route('/admin/users/<user_id>', endpoint='admin_users_edit')
+@app.route('/admin/users/<user_id>', endpoint='admin_users_edit', methods=['GET', 'POST'])
 @role_required([UserRole.admin])
 def admin_users(user_id):
+    if request.method == 'POST':
+        user = models.User.query.filter(models.User.id == user_id).first()
+        role = json.loads(request.data).get('role', None)
+        if not role:
+            return jsonify({'status': 'failed'})
+        if user:
+            user.role = int(role)
+            db.session.add(user)
+            db.session.flush()
+        return jsonify({'status': 'ok'})
     if user_id and request.method == "DELETE":
         user = models.User.query.filter(models.User.id == user_id).first()
         if user:

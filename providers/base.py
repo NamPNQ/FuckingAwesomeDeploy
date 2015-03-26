@@ -18,12 +18,12 @@ class Provider(object):
     def execute(self, workspace, task):
         raise NotImplementedError
 
-    def get_ssh_key(self):
-        if not current_app.config['SSH_PRIVATE_KEY']:
+    def get_ssh_key(self, task):
+        if not task.project.repository_data['ssh_key']:
             return
 
         f = NamedTemporaryFile()
-        f.write(current_app.config['SSH_PRIVATE_KEY'])
+        f.write(task.project.repository_data['ssh_key'])
         f.flush()
         f.seek(0)
 

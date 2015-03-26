@@ -21,32 +21,32 @@ var e=c.find(".active:last a"),f=a.Event("hide.bs.tab",{relatedTarget:b[0]}),g=a
 /**
  * Created by nampnq on 22/03/2015.
  */
-
-$.fn.serializeObject = function(){
-         var o = {};
-         var a = this.serializeArray();
-         $.each(a, function() {
-             if (o[this.name]) {
-                 if (!o[this.name].push) {
-                     o[this.name] = [o[this.name]];
-                 }
-                 o[this.name].push(this.value || '');
-             } else {
-                 o[this.name] = this.value || '';
-             }
-         });
-         return o;
-      };
+var following = true;
+$.fn.serializeObject = function () {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function () {
+        if (o[this.name]) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
 
 $(function () {
     $(document).on('click', '.edit-stage-btn', function () {
         var $this = $(this);
         $this.closest('li').find('.panel-edit-stage').toggle();
     });
-    $('.new-stage-btn').click(function(){
+    $('.new-stage-btn').click(function () {
         $('.new-stage-item').show();
     });
-    $('.new-stage-form').submit(function(e){
+    $('.new-stage-form').submit(function (e) {
         e.preventDefault();
         var $this = $(this), url = $this.attr('action-url');
         $.ajax(url, {
@@ -54,12 +54,12 @@ $(function () {
             'dataType': 'json',
             'contentType': 'application/json',
             'data': JSON.stringify($this.serializeObject())
-        }).success(function(data){
-            if(data.status=='ok'){
+        }).success(function (data) {
+            if (data.status == 'ok') {
                 var $new_stage_item = $('.new-stage-item'), $clone_item = $new_stage_item.clone();
                 $new_stage_item.hide();
                 var $tmp_arr = $clone_item.find('form').attr('action-url').split('/');
-                $tmp_arr[$tmp_arr.length-1] = 'update';
+                $tmp_arr[$tmp_arr.length - 1] = 'update';
                 $tmp_arr.push($this.serializeObject()['name']);
                 var $clone_url_update = $tmp_arr.join('/');
                 $clone_item.removeClass('new-stage-item');
@@ -72,9 +72,12 @@ $(function () {
                 $clone_item.insertBefore($('#stages').find('.new-stage-item'));
                 $new_stage_item.find('form')[0].reset();
             }
+            else {
+                alert('Update failed');
+            }
         }).error()
     });
-    $(document).on('submit', '.edit-stage-form', function(e){
+    $(document).on('submit', '.edit-stage-form', function (e) {
         e.preventDefault();
         var $this = $(this), url = $this.attr('action-url');
         $.ajax(url, {
@@ -82,19 +85,65 @@ $(function () {
             'dataType': 'json',
             'contentType': 'application/json',
             'data': JSON.stringify($this.serializeObject())
-        }).success(function(){
+        }).success(function () {
             $this.closest('.panel-edit-stage').hide();
         });
     });
-    $(document).on('click', '.cancel-save-stage', function(){
+    $(document).on('click', '.cancel-save-stage', function () {
         var $this = $(this);
         $this.closest('.new-stage-item').hide();
-    })
+    });
+    $('.users.index .role').find('input[type=radio]').change(function () {
+        var $this = $(this), user_id = $this.closest('.role').data('user-id');
+        $.ajax('/admin/users/' + user_id, {
+            'method': 'POST',
+            'dataType': 'json',
+            'contentType': 'application/json',
+            'data': JSON.stringify({'role': $this.val()})
+        })
+    });
+    $("#output-follow").click(function (event) {
+        following = true;
+
+        shrinkOutput();
+
+        var $messages = $("#messages");
+        $messages.scrollTop($messages.prop("scrollHeight"));
+
+        $("#output-options > button, #output-grow-toggle").removeClass("active");
+        $(this).addClass("active");
+    });
+    $("#output-steady").click(function (event) {
+        following = false;
+
+        shrinkOutput();
+
+        $("#output-options > button").removeClass("active");
+        $(this).addClass("active");
+    });
+    $("#output-grow").click(function (event) {
+        growOutput();
+
+        $("#output-options > button").removeClass("active");
+        $(this).addClass("active");
+        $("#output-grow-toggle").addClass("active");
+    });
+    $("#output-grow-toggle").click(function (event) {
+        var $self = $(this);
+
+        if ($self.hasClass("active")) {
+            shrinkOutput();
+            $self.removeClass("active");
+        } else {
+            growOutput();
+            $self.addClass("active");
+        }
+    });
+
 });
 
 function startStream() {
     $(document).ready(function () {
-        var following = true;
         var $messages = $("#messages");
         var streamUrl = $("#output").data("streamUrl");
         var source = new EventSource(streamUrl);
@@ -124,11 +173,17 @@ function startStream() {
         source.addEventListener('finished', function (e) {
             updateStatus(e);
             toggleOutputToolbar();
-            timeAgoFormat();
             source.close();
         }, false);
     });
 }
 function toggleOutputToolbar() {
     $('.only-active, .only-finished').toggle();
+}
+function shrinkOutput() {
+    $("#messages").css("max-height", 550);
+}
+
+function growOutput() {
+    $("#messages").css("max-height", "none");
 }

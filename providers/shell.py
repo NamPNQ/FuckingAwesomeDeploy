@@ -19,7 +19,7 @@ class ShellProvider(Provider):
 
     def execute(self, workspace, task):
         # keep ssh_key in scope to ensure it doesnt get wiped until run() exits
-        ssh_key = self.get_ssh_key()
+        ssh_key = self.get_ssh_key(task)
 
         command = self.get_command(
             task=task,

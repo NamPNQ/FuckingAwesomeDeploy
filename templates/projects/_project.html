@@ -1,11 +1,11 @@
   <div class="col-sm-4 project-tile">
     <h2>
-      <a href="#">{{ project.name }}</a>
+      <a href="{{ url_for('project', project_id=project.id) }}">{{ project.name }}</a>
     </h2>
     <ul>
     {% for stage in project.stages_data %}
         <li class="{{ 'locked' if stage.locked else '' }}">
-            <a href="#" class="stage-link">{{ stage.name | upper }}</a>
+            <a href="{{ url_for('project_stages', project_id=project.id) }}" class="stage-link">{{ stage.name | upper }}</a>
             {% if stage.currently_deploying %}<span class="label label-primary">Deploying</span>{% endif %}
             {% if stage.locked %}<i class="fa fa-lock"></i>{% endif %}
             {% if stage.last_deploy %}
@@ -15,7 +15,7 @@
                     <i class="fa fa-exclamation-triangle deployment-alert"></i>
                 </a>
               {% else %}
-                <a href="{{ url_for('project_deploy', project_id=project.id, deploy_id=stage.last_deploy.id) }}" class="status label">{{ stage.last_deploy.short_reference }}</a>
+                <a href="{{ url_for('project_deploy', project_id=project.id, deploy_id=stage.last_deploy.id) }}" class="status label label-success">{{ stage.last_deploy.sha }}</a>
               {% endif %}
             </div>
             {% endif %}

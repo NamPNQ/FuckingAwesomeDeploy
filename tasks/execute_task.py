@@ -10,7 +10,7 @@ from threading import Thread
 from time import sleep, time
 
 from app import app, db
-from models import Task, TaskStatus
+from models import Task, TaskStatus, LogChunk
 from flask.ext.sse import send_event
 from constants import PROJECT_ROOT
 
@@ -50,7 +50,6 @@ class LogReporter(Thread):
         self.active = True
         Thread.__init__(self)
         self.daemon = True
-        self.output = ''
 
     def save_chunk(self, text):
         # we also want to pipe this to stdout
@@ -58,17 +57,17 @@ class LogReporter(Thread):
 
         text_len = len(text)
 
-        # db.session.add(LogChunk(
-        #     task_id=self.task_id,
-        #     text=text,
-        #     offset=self.cur_offset,
-        #     size=text_len,
-        # ))
         send_event('append', json.dumps({'msg': text}), 'log_task_' + str(self.task_id))
 
         # # we flush immediately to ensure the API can stream logs
-        # with app.app_context():
-        #     db.session.flush()
+        with app.app_context():
+            db.session.add(LogChunk(
+                task_id=self.task_id,
+                text=text,
+                offset=self.cur_offset,
+                size=text_len,
+            ))
+            db.session.flush()
         self.cur_offset += text_len
 
     def terminate(self):
@@ -104,7 +103,6 @@ class LogReporter(Thread):
 
         if result:
             self.save_chunk(result)
-            self.output += result
 
 
 class TaskRunner(object):
