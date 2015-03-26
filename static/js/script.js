@@ -154,7 +154,7 @@ function startStream() {
             updateStatus(e);
             toggleOutputToolbar();
             source.close();
-            window.location.reload();
+            setTimeout(function(){window.location.reload();},500)
         }, false);
     });
 }
