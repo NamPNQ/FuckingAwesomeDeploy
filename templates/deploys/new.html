@@ -3,7 +3,8 @@
 <section>
   <form class="form-horizontal" method="POST">
     <fieldset>
-
+      <legend>Deploy {{ project.name }} - {{ stage_name }}</legend>
+      <div class="alert alert-info">{{ project.stages[stage_name].summary | safe }}</div>
       <div class="form-group">
         <label class="col-lg-2 control-label">Tag or SHA</label>
         <div id="scrollable-dropdown-menu" class="col-lg-4">
