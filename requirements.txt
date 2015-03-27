@@ -15,3 +15,4 @@ rq
 gunicorn
 eventlet
 bleach
+supervisor
