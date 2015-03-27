@@ -11,7 +11,7 @@ from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from flask.ext.sse import sse
 from raven.contrib.flask import Sentry
-
+import bleach
 import assets
 from constants import PROJECT_ROOT
 from utils.auth import CurrentUser, login_required, role_required, get_current_user
@@ -208,8 +208,8 @@ def new_project():
         })
     elif request.method == 'POST':
         data = request.form
-        name = data.get('name')
-        description = data.get('description')
+        name = bleach.clean(data.get('name', ''))
+        description = bleach.clean(data.get('description', ''))
         repository_url = data.get('repository_url')
         repository_ssh_key = data.get('repository_ssh_key')
         project = models.Project(
@@ -256,8 +256,13 @@ def edit_project(project_id):
         return abort(404)
     if request.method == 'POST':
         data = request.form
-        name = data.get('name')
-        description = data.get('description')
+        name = bleach.clean(data.get('name', ''))
+        if not name:
+            flash('Update failed! Filed "name" requiered.', 'danger')
+            return render_template('projects/edit.html', **{
+                'body_class': 'projects edit',
+                'project': project})
+        description = bleach.clean(data.get('description'))
         repository_url = data.get('repository_url')
         repository_ssh_key = data.get('repository_ssh_key')
         project.name = name
@@ -302,18 +307,26 @@ def new_or_update_project_stages(project_id, old_stage_name):
             db.session.flush()
         return redirect(url_for('project_stages', project_id=project.id))
     elif request.method == 'POST':
+        attrs = {
+            '*': ['style']
+        }
+        tags = ['p', 'em', 'strong']
+        styles = ['color', 'font-weight']
         json_data = json.loads(request.data)
         stage_name = json_data.get('name', None)
         stage_command = json_data.get('command', None)
-        stage_locked = json_data.get('locked', False)
+        stage_summary = json_data.get('summary', "")
+        stage_locked = 'locked' in json_data
         if not stage_name or not stage_command:
             return jsonify({'status': 'failed'})
-        stage_name = stage_name.lower()
+        stage_name = bleach.clean(stage_name).lower()
+        stage_summary = bleach.clean(stage_summary, tags, attrs, styles)
         project.project_data['stages'] = project.project_data['stages'].copy()
         if old_stage_name and old_stage_name in project.project_data['stages'].keys():
             del project.project_data['stages'][old_stage_name]
         project.project_data['stages'][stage_name] = {
             'command': stage_command,
+            'summary': stage_summary,
             'locked': stage_locked
         }
         db.session.add(project)
@@ -347,10 +360,16 @@ def create_project_deploy(project_id, stage_name):
     if not project:
         return abort(404)
     stage_name = stage_name.lower()
+    if stage_name not in project.stages.keys():
+        return abort(404)
+    if project.stages[stage_name]['locked']:
+        return abort(406, 'Deploy locked with stage')
     if request.method == 'GET':
         return render_template('deploys/new.html', **{
             'body_class': 'deploys new',
-            'project': project})
+            'project': project,
+            'stage_name': stage_name
+        })
     elif request.method == 'POST':
         from rq import Queue
         import vcs

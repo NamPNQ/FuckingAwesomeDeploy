@@ -11,7 +11,7 @@
         ::: {{ project.name }}: <a class="edit-stage-btn">{{ stage.name }}</a>
         <div class="btn-group pull-right">
           {% if current_user.is_admin %}
-              <a class="btn btn-default clone-stage-btn">Clone</a>
+{#              <a class="btn btn-default clone-stage-btn">Clone</a>#}
               <a class="btn btn-danger clone-stage-btn" href="{{ url_for('update_project_stages', project_id=project.id, old_stage_name=stage.name) }}?_method=delete">Delete</a>
           {% endif %}
         </div>
@@ -20,7 +20,7 @@
       <div class="panel panel-default panel-edit-stage" style="display:none; margin-top:20px">
           <div class="panel-heading">Update info of stage</div>
           <div class="panel-body">
-          <form class="edit-stage-form" action-url="{{ url_for('update_project_stages', project_id=project.id, old_stage_name=stage.name) }}">
+          <form class="edit-stage-form form-horizontal" action-url="{{ url_for('update_project_stages', project_id=project.id, old_stage_name=stage.name) }}">
           <fieldset>
               <fieldset>
                   <legend>Info</legend>
@@ -28,6 +28,19 @@
                       <label class="col-lg-2 control-label">Name</label>
                       <div class="col-lg-4">
                         <input type="text" name="name" class="form-control" value="{{ stage.name }}">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-lg-2 control-label">Summary</label>
+                      <div class="col-lg-4">
+                        <textarea name="summary" class="form-control">{{ stage.summary }}</textarea>
+                        <p class="help-block">Allow html without js</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-lg-2 control-label">Lock</label>
+                      <div class="col-lg-4">
+                        <input type="checkbox" name="locked" {{ "checked" if stage.locked }}>
                       </div>
                     </div>
               </fieldset>
@@ -53,7 +66,7 @@
       <div class="panel panel-default panel-edit-stage" style="margin-top:20px">
           <div class="panel-heading">Update info of stage</div>
           <div class="panel-body">
-          <form class="new-stage-form" action-url="{{ url_for('new_project_stages', project_id=project.id) }}">
+          <form class="new-stage-form form-horizontal" action-url="{{ url_for('new_project_stages', project_id=project.id) }}">
           <fieldset>
               <fieldset>
                   <legend>Info</legend>
@@ -61,6 +74,19 @@
                       <label class="col-lg-2 control-label">Name</label>
                       <div class="col-lg-4">
                         <input type="text" name="name" class="form-control">
+                      </div>
+                    </div>
+                  <div class="form-group">
+                      <label class="col-lg-2 control-label">Summary</label>
+                      <div class="col-lg-4">
+                        <textarea name="summary" class="form-control"></textarea>
+                        <p class="help-block">Allow html without js</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-lg-2 control-label">Lock</label>
+                      <div class="col-lg-4">
+                        <input type="checkbox" name="locked" value="">
                       </div>
                     </div>
               </fieldset>
