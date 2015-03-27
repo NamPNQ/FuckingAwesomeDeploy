@@ -1,7 +1,7 @@
 import os
 from constants import PROJECT_ROOT
 
-DEBUG = True
+DEBUG = False
 
 PROJECT_NAME = 'Fs Deploy Tool'
 
