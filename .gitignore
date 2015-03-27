@@ -1,4 +1,4 @@
 env
 .idea
-.pyc
+*.pyc
 tmp
